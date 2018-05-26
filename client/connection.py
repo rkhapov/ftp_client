@@ -8,11 +8,11 @@ from abc import *
 
 class Connection:
     @abstractmethod
-    def send(self, data: bytes):
+    def send(self, data: str):
         raise NotImplemented
 
     @abstractmethod
-    def receive(self, max_length: int = None):
+    def receive(self, max_length: int = 1024):
         raise NotImplemented
 
     @abstractmethod

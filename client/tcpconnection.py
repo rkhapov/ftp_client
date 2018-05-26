@@ -25,9 +25,6 @@ class TcpConnection(Connection):
                 raise TypeError('Expected bytes or string data to send in connection')
             data = bytes(data, 'utf-8')
 
-        if data[len(data) - 1] != b'\n':
-            data += b'\n'
-
         if self._logfile is not None:
             logging.info('Sending, size={}: {}'.format(len(data), cut_to_len(data, 1024)))
 
@@ -50,5 +47,5 @@ class TcpConnection(Connection):
     def _enable_logging(self, filename: str):
         from time import gmtime, strftime
         logging.basicConfig(filename=filename, level=logging.DEBUG)
-        logging.info('Logging enable, run at: {}'.format(strftime("%Y-%m-%d %H:%M:%S", gmtime())))
+        logging.info('Logging enable, ran at: {}'.format(strftime("%Y-%m-%d %H:%M:%S", gmtime())))
         self._logfile = filename
