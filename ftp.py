@@ -5,7 +5,7 @@ import sys
 import re
 
 from commands.command_factory import CommandFactory, CommandFactoryError
-from client.tcpconnection import *
+from client.ftpconnection import FtpConnection, Connection
 
 
 def parse_address(address: str):
@@ -35,8 +35,15 @@ def parse_args():
 
 def process_next_command(connection: Connection, factory: CommandFactory):
     try:
-        command = factory.from_string(input('$> '))
-        command.execute(connection)
+        # command = factory.from_string(input('$> '))
+        # command.execute(connection)
+        s = input()
+
+        if s != '#':
+            connection.send(s)
+
+        print(connection.receive())
+
     except CommandFactoryError as e:
         print(e.args[0])
     except KeyboardInterrupt:
@@ -49,7 +56,7 @@ def create_ftp_client():
     try:
         address, logfile = parse_args()
         address, port = parse_address(address)
-        connection = None  # TcpConnection(address, port, logfile)
+        connection = FtpConnection(address, port, logfile)
         command_factory = CommandFactory()
 
         return connection, command_factory
@@ -62,6 +69,7 @@ def create_ftp_client():
 def main():
     connection, factory = create_ftp_client()
 
+    print(connection.receive())
     while True:
         process_next_command(connection, factory)
 

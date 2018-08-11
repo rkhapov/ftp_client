@@ -2,3 +2,7 @@ This is the python ftp client
 See
 python ftp.py -h
 for more information
+
+rfc specification of ftp: https://tools.ietf.org/html/rfc959
+
+you can use speedtest.tele2.net on port 21 for tests
