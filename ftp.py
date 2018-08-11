@@ -35,14 +35,8 @@ def parse_args():
 
 def process_next_command(connection: Connection, factory: CommandFactory):
     try:
-        # command = factory.from_string(input('$> '))
-        # command.execute(connection)
-        s = input()
-
-        if s != '#':
-            connection.send(s)
-
-        print(connection.receive())
+        command = factory.from_string(input('$> '))
+        command.execute(connection)
 
     except CommandFactoryError as e:
         print(e.args[0])
@@ -69,7 +63,8 @@ def create_ftp_client():
 def main():
     connection, factory = create_ftp_client()
 
-    print(connection.receive())
+    print(connection.receive())  # TODO: erase this string
+
     while True:
         process_next_command(connection, factory)
 

@@ -4,7 +4,7 @@ import sys
 import os
 
 from abc import abstractmethod
-from client.connection import Connection
+from client.ftpconnection import FtpConnection
 
 
 class Command:
@@ -12,7 +12,7 @@ class Command:
         self.args = []
 
     @abstractmethod
-    def execute(self, connection: Connection):
+    def execute(self, connection: FtpConnection):
         raise NotImplementedError('execute of command {} not implemented'.format(self.__class__.__name__))
 
     @staticmethod
@@ -32,7 +32,7 @@ class Command:
 
 
 class List(Command):
-    def execute(self, connection: Connection):
+    def execute(self, connection: FtpConnection):
         print(self.__class__.__name__)
 
     @staticmethod
@@ -49,8 +49,9 @@ class List(Command):
 
 
 class ChangeDirectory(Command):
-    def execute(self, connection: Connection):
-        print(self.__class__.__name__)
+    def execute(self, connection: FtpConnection):
+        connection.send('CWD {}'.format(self.args[0]))
+        print(connection.receive())
 
     @staticmethod
     def name():
@@ -66,8 +67,9 @@ class ChangeDirectory(Command):
 
 
 class Quit(Command):
-    def execute(self, connection: Connection):
-        print('Warning: quit doesnt make connection closing')
+    def execute(self, connection: FtpConnection):
+        connection.send('QUIT')
+        connection.close()
         sys.exit(0)
 
     @staticmethod
@@ -84,7 +86,7 @@ class Quit(Command):
 
 
 class Upload(Command):
-    def execute(self, connection: Connection):
+    def execute(self, connection: FtpConnection):
         print(self.__class__.__name__)
 
     @staticmethod
@@ -101,7 +103,7 @@ class Upload(Command):
 
 
 class Download(Command):
-    def execute(self, connection: Connection):
+    def execute(self, connection: FtpConnection):
         print(self.__class__.__name__)
 
     @staticmethod
@@ -118,7 +120,7 @@ class Download(Command):
 
 
 class Rename(Command):
-    def execute(self, connection: Connection):
+    def execute(self, connection: FtpConnection):
         print(self.__class__.__name__)
 
     @staticmethod
@@ -135,7 +137,7 @@ class Rename(Command):
 
 
 class Remove(Command):
-    def execute(self, connection: Connection):
+    def execute(self, connection: FtpConnection):
         print(self.__class__.__name__)
 
     @staticmethod
@@ -152,7 +154,7 @@ class Remove(Command):
 
 
 class MakeDirectory(Command):
-    def execute(self, connection: Connection):
+    def execute(self, connection: FtpConnection):
         print(self.__class__.__name__)
 
     @staticmethod
@@ -169,7 +171,7 @@ class MakeDirectory(Command):
 
 
 class Help(Command):
-    def execute(self, connection: Connection):
+    def execute(self, connection: FtpConnection):
         print('Simple ftp client')
         print('Next commands are supported:')
         for command in Command.__subclasses__():
@@ -190,7 +192,7 @@ class Help(Command):
 
 
 class CommandHelp(Command):
-    def execute(self, connection: Connection):
+    def execute(self, connection: FtpConnection):
         for command in Command.__subclasses__():
             if command.name().lower() == self.args[0]:
                 print('{}: [{}]: {}'.format(command.name(), command.format(), command.help()))
@@ -212,7 +214,7 @@ class CommandHelp(Command):
 
 
 class Clear(Command):
-    def execute(self, connection: Connection):
+    def execute(self, connection: FtpConnection):
         os.system('cls' if os.name == 'nt' else 'clear')
 
     @staticmethod
@@ -229,8 +231,12 @@ class Clear(Command):
 
 
 class Login(Command):
-    def execute(self, connection: Connection):
-        print(self.__class__.__name__)
+    def execute(self, connection: FtpConnection):
+        connection.send('USER {}'.format(self.args[0]))
+        connection.send('PASS {}'.format(self.args[1]))
+
+        print(connection.receive())
+        print(connection.receive())
 
     @staticmethod
     def name() -> str:
