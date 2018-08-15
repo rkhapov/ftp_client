@@ -4,7 +4,15 @@ import sys
 import os
 
 from abc import abstractmethod
+from enum import Enum
+
 from client.ftpconnection import FtpConnection
+from client.resultstatusparser import ResultStatusParser
+
+
+class CommandStatus(Enum):
+    SUCCESS = 1
+    FAILED = 2
 
 
 class Command:
@@ -12,7 +20,7 @@ class Command:
         self.args = []
 
     @abstractmethod
-    def execute(self, connection: FtpConnection):
+    def execute(self, connection: FtpConnection) -> CommandStatus:
         raise NotImplementedError('execute of command {} not implemented'.format(self.__class__.__name__))
 
     @staticmethod
@@ -33,7 +41,7 @@ class Command:
 
 class List(Command):
     def execute(self, connection: FtpConnection):
-        print(self.__class__.__name__)
+        return CommandStatus.FAILED
 
     @staticmethod
     def name():
@@ -52,6 +60,7 @@ class ChangeDirectory(Command):
     def execute(self, connection: FtpConnection):
         connection.send('CWD {}'.format(self.args[0]))
         print(connection.receive())
+        return CommandStatus.FAILED
 
     @staticmethod
     def name():
@@ -87,7 +96,7 @@ class Quit(Command):
 
 class Upload(Command):
     def execute(self, connection: FtpConnection):
-        print(self.__class__.__name__)
+        return CommandStatus.FAILED
 
     @staticmethod
     def name():
@@ -104,7 +113,7 @@ class Upload(Command):
 
 class Download(Command):
     def execute(self, connection: FtpConnection):
-        print(self.__class__.__name__)
+        return CommandStatus.FAILED
 
     @staticmethod
     def name():
@@ -121,7 +130,7 @@ class Download(Command):
 
 class Rename(Command):
     def execute(self, connection: FtpConnection):
-        print(self.__class__.__name__)
+        return CommandStatus.FAILED
 
     @staticmethod
     def name():
@@ -138,7 +147,7 @@ class Rename(Command):
 
 class Remove(Command):
     def execute(self, connection: FtpConnection):
-        print(self.__class__.__name__)
+        return CommandStatus.FAILED
 
     @staticmethod
     def name():
@@ -155,7 +164,7 @@ class Remove(Command):
 
 class MakeDirectory(Command):
     def execute(self, connection: FtpConnection):
-        print(self.__class__.__name__)
+        return CommandStatus.FAILED
 
     @staticmethod
     def name():
@@ -177,6 +186,7 @@ class Help(Command):
         for command in Command.__subclasses__():
             print('{} : {}'.format(command.name() + ' ' * (15 - len(command.name())),
                                    command.help()))
+        return CommandStatus.SUCCESS
 
     @staticmethod
     def name():
@@ -196,9 +206,10 @@ class CommandHelp(Command):
         for command in Command.__subclasses__():
             if command.name().lower() == self.args[0]:
                 print('{}: [{}]: {}'.format(command.name(), command.format(), command.help()))
-                return
+                return CommandStatus.SUCCESS
 
         print('Unknown command: {}'.format(self.args[0]))
+        return CommandStatus.FAILED
 
     @staticmethod
     def name() -> str:
@@ -216,6 +227,7 @@ class CommandHelp(Command):
 class Clear(Command):
     def execute(self, connection: FtpConnection):
         os.system('cls' if os.name == 'nt' else 'clear')
+        return CommandStatus.SUCCESS
 
     @staticmethod
     def name():
@@ -233,10 +245,19 @@ class Clear(Command):
 class Login(Command):
     def execute(self, connection: FtpConnection):
         connection.send('USER {}'.format(self.args[0]))
-        connection.send('PASS {}'.format(self.args[1]))
+        result_code = ResultStatusParser.get_status_code(connection.receive())
 
-        print(connection.receive())
-        print(connection.receive())
+        if not ResultStatusParser.is_success_code(result_code) and \
+                not ResultStatusParser.is_need_more_command_code(result_code):
+            return CommandStatus.FAILED
+
+        connection.send('PASS {}'.format(self.args[1]))
+        result_code = ResultStatusParser.get_status_code(connection.receive())
+
+        if not ResultStatusParser.is_success_code(result_code):
+            return CommandStatus.FAILED
+
+        return CommandStatus.SUCCESS
 
     @staticmethod
     def name() -> str:

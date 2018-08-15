@@ -5,7 +5,7 @@ import sys
 import re
 
 from commands.command_factory import CommandFactory, CommandFactoryError
-from client.ftpconnection import FtpConnection, Connection
+from client.ftpconnection import FtpConnection
 
 
 def parse_address(address: str):
@@ -33,10 +33,12 @@ def parse_args():
     return args.address, args.logfile
 
 
-def process_next_command(connection: Connection, factory: CommandFactory):
+def process_next_command(connection: FtpConnection, factory: CommandFactory):
     try:
         command = factory.from_string(input('$> '))
-        command.execute(connection)
+        status = command.execute(connection)
+
+        print(str(status).split('.')[1])
 
     except CommandFactoryError as e:
         print(e.args[0])
@@ -63,7 +65,7 @@ def create_ftp_client():
 def main():
     connection, factory = create_ftp_client()
 
-    print(connection.receive())  # TODO: erase this string
+    print(connection.receive())
 
     while True:
         process_next_command(connection, factory)
