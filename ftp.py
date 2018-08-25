@@ -55,6 +55,9 @@ def create_ftp_client():
         connection = FtpConnection(address, port, logfile)
         command_factory = CommandFactory()
 
+        # printing welcome message of server
+        print(connection.receive())
+
         return connection, command_factory
 
     except Exception as e:
@@ -64,8 +67,6 @@ def create_ftp_client():
 
 def main():
     connection, factory = create_ftp_client()
-
-    print(connection.receive())
 
     while True:
         process_next_command(connection, factory)
