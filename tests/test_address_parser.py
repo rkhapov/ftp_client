@@ -18,3 +18,13 @@ class AddressParserTests(unittest.TestCase):
         sut = AddressParser.parse('192,168,78,14,65,32')
 
         self.assertTupleEqual(sut, ('192.168.78.14', 65 * 256 + 32))
+
+    def test_extract_address_from_text__no_address_in_text__should_return_none(self):
+        sut = AddressParser.extract_address_from_text('this is my text lol')
+
+        self.assertIsNone(sut)
+
+    def test_extract_address_from_text__address_on_text__should_return_right_address_string(self):
+        sut = AddressParser.extract_address_from_text('this is text lol ad address hih (1,12,13,14,15,123)')
+
+        self.assertEqual(sut, '1,12,13,14,15,123')
