@@ -15,14 +15,14 @@ class FtpConnection(TcpConnection):
 
         super().send(data)
 
-    def receive(self, max_length: int = 1024):
+    def receive(self, max_length: int = 1024) -> str:
         parts = []
 
         while True:
-            parts.append(self._receive_next_line())
-            last = parts[len(parts) - 1]
+            next_line = self._receive_next_line()
+            parts.append(next_line)
 
-            if not FtpConnection._is_need_continue(last):
+            if not FtpConnection._is_need_continue(next_line):
                 break
 
         return END_OF_LINE.join(parts)
@@ -34,14 +34,20 @@ class FtpConnection(TcpConnection):
         line = ''
 
         while not line.endswith(END_OF_LINE):
-            line += super().receive(1).decode('utf-8')
+            next_byte = super().receive(1).decode('utf-8')
+            line += next_byte
 
         return line
 
     @staticmethod
     def _is_need_continue(line):
-        return not FtpConnection._is_first_line_of_answer(line) or\
-               FtpConnection._is_multi_line_answer(line)
+        return not FtpConnection._is_first_line_of_answer(line) or \
+               FtpConnection._is_multi_line_answer(line) or \
+               FtpConnection._is_command_in_process_answer(line)
+
+    @staticmethod
+    def _is_command_in_process_answer(line):
+        return len(line) >= 1 and line[0] == '1'
 
     @staticmethod
     def _is_multi_line_answer(line: str):

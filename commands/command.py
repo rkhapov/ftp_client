@@ -1,18 +1,32 @@
 #!/usr/bin/env python3
 
-import sys
 import os
-
+import sys
 from abc import abstractmethod
 from enum import Enum
 
+from client import downloader
 from client.ftpconnection import FtpConnection
 from client.resultstatusparser import ResultStatusParser
+from client.tcpconnection import TcpConnection
+from tools.addressparser import AddressParser
 
 
 class CommandStatus(Enum):
     SUCCESS = 1
     FAILED = 2
+
+
+def _enter_passive_mode(connection: FtpConnection):
+    connection.send("PASV")
+    answer = connection.receive()
+    print(answer)
+    addr = AddressParser.extract_address_from_text(answer)
+
+    if addr is None:
+        return None
+
+    return AddressParser.parse(addr)
 
 
 class Command:
@@ -41,7 +55,21 @@ class Command:
 
 class List(Command):
     def execute(self, connection: FtpConnection):
-        return CommandStatus.FAILED
+        address = _enter_passive_mode(connection)
+
+        if address is None:
+            return CommandStatus.FAILED
+
+        download_connection = TcpConnection(address[0], address[1])
+
+        connection.send("LIST")
+
+        print(connection.receive())
+
+        decode = downloader.download_from_connection(download_connection).decode('utf-8')
+        print(decode)
+
+        return CommandStatus.SUCCESS
 
     @staticmethod
     def name():
@@ -59,8 +87,13 @@ class List(Command):
 class ChangeDirectory(Command):
     def execute(self, connection: FtpConnection):
         connection.send('CWD {}'.format(self.args[0]))
-        print(connection.receive())
-        return CommandStatus.FAILED
+        answer = connection.receive()
+        print(answer)
+        code = ResultStatusParser.get_status_code(answer)
+        if not ResultStatusParser.is_success_code(code):
+            return CommandStatus.FAILED
+
+        return CommandStatus.SUCCESS
 
     @staticmethod
     def name():
@@ -73,6 +106,30 @@ class ChangeDirectory(Command):
     @staticmethod
     def help():
         return 'change directory to specified (.. for parent directory)'
+
+
+class PwdCommand(Command):
+    def execute(self, connection: FtpConnection) -> CommandStatus:
+        connection.send('PWD')
+        answer = connection.receive()
+        print(answer)
+        code = ResultStatusParser.get_status_code(answer)
+        if not ResultStatusParser.is_success_code(code):
+            return CommandStatus.FAILED
+
+        return CommandStatus.SUCCESS
+
+    @staticmethod
+    def name() -> str:
+        return 'pwd'
+
+    @staticmethod
+    def format() -> str:
+        return 'pwd'
+
+    @staticmethod
+    def help() -> str:
+        return 'show current directory'
 
 
 class Quit(Command):
@@ -145,21 +202,38 @@ class Rename(Command):
         return 'rename file or directory $1 to $2'
 
 
-class Remove(Command):
+class RemoveFile(Command):
     def execute(self, connection: FtpConnection):
         return CommandStatus.FAILED
 
     @staticmethod
     def name():
-        return 'remove'
+        return 'rmf'
 
     @staticmethod
     def format():
-        return 'remove $1'
+        return 'rmf $1'
 
     @staticmethod
     def help():
-        return 'remove file or directory'
+        return 'remove file'
+
+
+class RemoveDir(Command):
+    def execute(self, connection: FtpConnection):
+        return CommandStatus.FAILED
+
+    @staticmethod
+    def name():
+        return 'rmd'
+
+    @staticmethod
+    def format():
+        return 'rmd $1'
+
+    @staticmethod
+    def help():
+        return 'remove directory'
 
 
 class MakeDirectory(Command):
@@ -245,14 +319,18 @@ class Clear(Command):
 class Login(Command):
     def execute(self, connection: FtpConnection):
         connection.send('USER {}'.format(self.args[0]))
-        result_code = ResultStatusParser.get_status_code(connection.receive())
+        answer = connection.receive()
+        print('USER -> {}'.format(answer))
+        result_code = ResultStatusParser.get_status_code(answer)
 
         if not ResultStatusParser.is_success_code(result_code) and \
                 not ResultStatusParser.is_need_more_command_code(result_code):
             return CommandStatus.FAILED
 
         connection.send('PASS {}'.format(self.args[1]))
-        result_code = ResultStatusParser.get_status_code(connection.receive())
+        answer = connection.receive()
+        print('PASS -> {}'.format(answer))
+        result_code = ResultStatusParser.get_status_code(answer)
 
         if not ResultStatusParser.is_success_code(result_code):
             return CommandStatus.FAILED

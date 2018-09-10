@@ -14,13 +14,11 @@ def _get_percent_line(percent, length=20):
     return '[{}{}] {:.1}'.format('#' * filled_count, ' ' * (true_length - filled_count), percent)
 
 
-def download_data(address, port, percent_func=None):
-    connection = TcpConnection(address, port)
-
+def download_from_connection(connection: TcpConnection, percent_func=None):
     data = bytearray()
 
     while True:
-        next_part = connection.receive()
+        next_part = connection.receive(1024)
 
         if len(next_part) == 0:
             break
@@ -37,6 +35,12 @@ def download_data(address, port, percent_func=None):
         print('\r')
 
     return data
+
+
+def download_data(address, port, percent_func=None):
+    connection = TcpConnection(address, port)
+
+    return download_from_connection(connection, percent_func)
 
 
 def download_file(address, port, path, percent_func=None):
