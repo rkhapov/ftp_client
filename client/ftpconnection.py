@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 
-from client.tcpconnection import TcpConnection, Connection
+from client.tcpconnection import TcpConnection
 
 END_OF_LINE = '\r\n'
 
 
-class FtpConnection(Connection):
+class FtpConnection(TcpConnection):
     def __init__(self, host: str, port: int, logfile: str = None):
-        self._tcp_connection = TcpConnection(host, port, logfile)
+        super().__init__(host, port, logfile)
 
     def send(self, data: str):
         if not data.endswith(END_OF_LINE):
             data += END_OF_LINE
 
-        self._tcp_connection.send(data)
+        super().send(data)
 
     def receive(self, max_length: int = 1024):
         parts = []
@@ -28,13 +28,13 @@ class FtpConnection(Connection):
         return END_OF_LINE.join(parts)
 
     def close(self):
-        self._tcp_connection.close()
+        super().close()
 
     def _receive_next_line(self) -> str:
         line = ''
 
         while not line.endswith(END_OF_LINE):
-            line += self._tcp_connection.receive(1)
+            line += super().receive(1).decode('utf-8')
 
         return line
 

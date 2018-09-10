@@ -30,13 +30,13 @@ class TcpConnection(Connection):
 
         self._socket.sendall(data)
 
-    def receive(self, max_length: int = 1024) -> str:
+    def receive(self, max_length: int = 1024) -> bytes:
         data = self._socket.recv(max_length)
 
         if self._logfile is not None:
             logging.info('Received, size={}: {}'.format(len(data), cut_to_len(data, 1024)))
 
-        return data.decode('utf-8')
+        return data
 
     def close(self):
         self._socket.close()

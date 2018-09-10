@@ -16,8 +16,8 @@ def parse_address(address: str):
 
     if len(tokens) != 2:
         raise SyntaxError('Address string should have one of formats:\n'
-                          'host:port\n'
-                          'host in case port 21 are used')
+                          '<host>:<port>\n'
+                          '<host> in case port 21 are used')
 
     return tokens[0], int(tokens[1])
 
