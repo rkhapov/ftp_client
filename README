@@ -1,8 +1,9 @@
-This is the python ftp client
+ftpie is a simple ftp client written in python
+
 See
-python ftp.py -h
+python ftpie.py -h
 for more information
 
 rfc specification of ftp: https://tools.ietf.org/html/rfc959
 
-you can use speedtest.tele2.net on port 21 for tests
+(you can use speedtest.tele2.net on port 21 for tests)

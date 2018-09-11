@@ -5,13 +5,13 @@ import socket
 from network.address import Address
 
 
-class TcpClient:
+class TcpConnection:
     def __init__(self, address: Address, timeout=None):
         self.__address = address
-        self.__socket.settimeout(self.__timeout)
-        self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.__socket.connect(address.as_tuple)
         self.__timeout = timeout
+        self.__socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.__socket.settimeout(self.__timeout)
+        self.__socket.connect(address.as_tuple)
 
     @property
     def timeout(self):
