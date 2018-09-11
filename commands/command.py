@@ -62,7 +62,7 @@ class List(Command):
         download_connection = TcpConnection(address[0], address[1])
         connection.send("LIST")
         print(connection.receive())
-        decode = downloader.download__data_from_connection(download_connection).decode('utf-8')
+        decode = downloader.download_data_from_connection(download_connection).decode('utf-8')
         print(decode)
 
         return CommandStatus.SUCCESS
@@ -177,10 +177,7 @@ class Download(Command):
         if not ResultStatusParser.is_ok_code(code):
             return CommandStatus.FAILED
         size = extract_size_from_text(answer)
-        percent_func = None
-        if size is not None:
-            percent_func = lambda c: c * 100 / size
-        downloader.download_file_from_connection(download_connection, self.args[1], percent_func)
+        downloader.download_file_from_connection(download_connection, self.args[1], size)
         answer = connection.receive()
         print(answer)
         code = ResultStatusParser.get_status_code(answer)
