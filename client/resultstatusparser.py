@@ -24,6 +24,14 @@ class ResultStatusParser:
             raise ValueError
 
     @staticmethod
+    def is_ok_code(code: int):
+        return ResultStatusParser.is_success_code(code) or ResultStatusParser.is_continue_code(code)
+
+    @staticmethod
+    def is_continue_code(code: int):
+        return str(code).startswith('1')
+
+    @staticmethod
     def is_success_code(code: int):
         return str(code).startswith('2')
 

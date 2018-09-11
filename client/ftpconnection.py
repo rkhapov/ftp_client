@@ -19,7 +19,7 @@ class FtpConnection(TcpConnection):
         parts = []
 
         while True:
-            next_line = self._receive_next_line()
+            next_line = self.receive_next_line()
             parts.append(next_line)
 
             if not FtpConnection._is_need_continue(next_line):
@@ -30,7 +30,7 @@ class FtpConnection(TcpConnection):
     def close(self):
         super().close()
 
-    def _receive_next_line(self) -> str:
+    def receive_next_line(self) -> str:
         line = ''
 
         while not line.endswith(END_OF_LINE):

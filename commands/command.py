@@ -5,6 +5,7 @@ import sys
 from abc import abstractmethod
 from enum import Enum
 
+from tools.sizeparser import extract_size_from_text
 from client import downloader
 from client.ftpconnection import FtpConnection
 from client.resultstatusparser import ResultStatusParser
@@ -56,17 +57,12 @@ class Command:
 class List(Command):
     def execute(self, connection: FtpConnection):
         address = _enter_passive_mode(connection)
-
         if address is None:
             return CommandStatus.FAILED
-
         download_connection = TcpConnection(address[0], address[1])
-
         connection.send("LIST")
-
         print(connection.receive())
-
-        decode = downloader.download_from_connection(download_connection).decode('utf-8')
+        decode = downloader.download__data_from_connection(download_connection).decode('utf-8')
         print(decode)
 
         return CommandStatus.SUCCESS
@@ -105,7 +101,7 @@ class ChangeDirectory(Command):
 
     @staticmethod
     def help():
-        return 'change directory to specified (.. for parent directory)'
+        return 'change current directory to specified (.. for parent directory)'
 
 
 class PwdCommand(Command):
@@ -170,7 +166,28 @@ class Upload(Command):
 
 class Download(Command):
     def execute(self, connection: FtpConnection):
-        return CommandStatus.FAILED
+        address = _enter_passive_mode(connection)
+        if address is None:
+            return CommandStatus.FAILED
+        download_connection = TcpConnection(address[0], address[1])
+        connection.send("RETR {}".format(self.args[0]))
+        answer = connection.receive_next_line()
+        print(answer)
+        code = ResultStatusParser.get_status_code(answer)
+        if not ResultStatusParser.is_ok_code(code):
+            return CommandStatus.FAILED
+        size = extract_size_from_text(answer)
+        percent_func = None
+        if size is not None:
+            percent_func = lambda c: c * 100 / size
+        downloader.download_file_from_connection(download_connection, self.args[1], percent_func)
+        answer = connection.receive()
+        print(answer)
+        code = ResultStatusParser.get_status_code(answer)
+        if not ResultStatusParser.is_ok_code(code):
+            return CommandStatus.FAILED
+
+        return CommandStatus.SUCCESS
 
     @staticmethod
     def name():
@@ -204,7 +221,16 @@ class Rename(Command):
 
 class RemoveFile(Command):
     def execute(self, connection: FtpConnection):
-        return CommandStatus.FAILED
+        connection.send('DELE {}'.format(self.args[0]))
+        answer = connection.receive()
+        print(answer)
+
+        code = ResultStatusParser.get_status_code(answer)
+
+        if not ResultStatusParser.is_success_code(code):
+            return CommandStatus.FAILED
+
+        return CommandStatus.SUCCESS
 
     @staticmethod
     def name():
@@ -221,7 +247,16 @@ class RemoveFile(Command):
 
 class RemoveDir(Command):
     def execute(self, connection: FtpConnection):
-        return CommandStatus.FAILED
+        connection.send('RMD {}'.format(self.args[0]))
+        answer = connection.receive()
+        print(answer)
+
+        code = ResultStatusParser.get_status_code(answer)
+
+        if not ResultStatusParser.is_success_code(code):
+            return CommandStatus.FAILED
+
+        return CommandStatus.SUCCESS
 
     @staticmethod
     def name():
@@ -238,7 +273,16 @@ class RemoveDir(Command):
 
 class MakeDirectory(Command):
     def execute(self, connection: FtpConnection):
-        return CommandStatus.FAILED
+        connection.send("MKD {}".format(self.args[0]))
+        answer = connection.receive()
+        print(answer)
+
+        code = ResultStatusParser.get_status_code(answer)
+
+        if not ResultStatusParser.is_success_code(code):
+            return CommandStatus.FAILED
+
+        return CommandStatus.SUCCESS
 
     @staticmethod
     def name():
@@ -320,7 +364,7 @@ class Login(Command):
     def execute(self, connection: FtpConnection):
         connection.send('USER {}'.format(self.args[0]))
         answer = connection.receive()
-        print('USER -> {}'.format(answer))
+        print(answer)
         result_code = ResultStatusParser.get_status_code(answer)
 
         if not ResultStatusParser.is_success_code(result_code) and \
@@ -329,7 +373,7 @@ class Login(Command):
 
         connection.send('PASS {}'.format(self.args[1]))
         answer = connection.receive()
-        print('PASS -> {}'.format(answer))
+        print(answer)
         result_code = ResultStatusParser.get_status_code(answer)
 
         if not ResultStatusParser.is_success_code(result_code):
