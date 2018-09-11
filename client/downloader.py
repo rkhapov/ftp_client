@@ -3,24 +3,7 @@
 
 from client.tcpconnection import TcpConnection
 from tools.timer import Timer
-
-
-def _get_progress_bar(current_length, speed, size=None, length=40):
-    if size is not None:
-        percent = current_length / size * 100
-        if length <= 2:
-            raise ValueError('percent line length must be greater than 2')
-
-        true_length = length - 2
-        filled_count = int(percent / 100 * true_length)
-
-        return '[{}{}] {:.1f}% Speed: {:.2f} KB/s'.format(
-            '#' * filled_count,
-            ' ' * (true_length - filled_count),
-            percent,
-            speed / 1024)
-
-    return 'Downloading with speed {:.2f} KB/s'.format(speed / 1024)
+from tools.progress_bar import get_progress_bar
 
 
 def download_data_from_connection(connection: TcpConnection, size=None):
@@ -37,7 +20,7 @@ def download_data_from_connection(connection: TcpConnection, size=None):
 
         speed = downloaded / (timer.get_elapsed() + 1e-6)
 
-        percent_line = _get_progress_bar(downloaded, speed, size)
+        percent_line = get_progress_bar(downloaded, speed, size)
         print('\r' + percent_line + '        ', end='')
 
         for b in next_part:

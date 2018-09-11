@@ -19,7 +19,7 @@ class TcpConnection(Connection):
         if logfile is not None:
             self._enable_logging(logfile)
 
-    def send(self, data: str):
+    def send(self, data: [str, bytes]):
         if not isinstance(data, bytes):
             if not isinstance(data, str):
                 raise TypeError('Expected bytes or string data to send in connection')

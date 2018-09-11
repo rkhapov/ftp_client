@@ -4,6 +4,7 @@ import os
 import sys
 from abc import abstractmethod
 from enum import Enum
+from getpass import getpass, getuser
 
 from tools.sizeparser import extract_size_from_text
 from client import downloader
@@ -11,6 +12,7 @@ from client.ftpconnection import FtpConnection
 from client.resultstatusparser import ResultStatusParser
 from client.tcpconnection import TcpConnection
 from tools.addressparser import AddressParser
+from client.uploader import upload_at_connection, upload_file_at_connection
 
 
 class CommandStatus(Enum):
@@ -149,7 +151,19 @@ class Quit(Command):
 
 class Upload(Command):
     def execute(self, connection: FtpConnection):
-        return CommandStatus.FAILED
+        address = _enter_passive_mode(connection)
+        if address is None:
+            return CommandStatus.FAILED
+        upload_connection = TcpConnection(address[0], address[1])
+        connection.send("STOR {}".format(self.args[0]))
+        upload_file_at_connection(upload_connection, self.args[0])
+        answer = connection.receive()
+        code = ResultStatusParser.get_status_code(answer)
+
+        if not ResultStatusParser.is_ok_code(code):
+            return CommandStatus.FAILED
+
+        return CommandStatus.SUCCESS
 
     @staticmethod
     def name():
@@ -359,7 +373,8 @@ class Clear(Command):
 
 class Login(Command):
     def execute(self, connection: FtpConnection):
-        connection.send('USER {}'.format(self.args[0]))
+        user, password = self._get_user_and_password()
+        connection.send('USER {}'.format(user))
         answer = connection.receive()
         print(answer)
         result_code = ResultStatusParser.get_status_code(answer)
@@ -368,7 +383,7 @@ class Login(Command):
                 not ResultStatusParser.is_need_more_command_code(result_code):
             return CommandStatus.FAILED
 
-        connection.send('PASS {}'.format(self.args[1]))
+        connection.send('PASS {}'.format(password))
         answer = connection.receive()
         print(answer)
         result_code = ResultStatusParser.get_status_code(answer)
@@ -378,14 +393,21 @@ class Login(Command):
 
         return CommandStatus.SUCCESS
 
+    def _get_user_and_password(self):
+        user = input('User: ')
+        password = getpass()
+
+        return user, password
+
+
     @staticmethod
     def name() -> str:
         return 'login'
 
     @staticmethod
     def format() -> str:
-        return 'login $1 $2'
+        return 'login'
 
     @staticmethod
     def help() -> str:
-        return 'login with user $1 and pass $2'
+        return 'login to system'
