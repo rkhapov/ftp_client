@@ -70,19 +70,19 @@ def _is_answer_line(line):
 
 
 class FtpConnection:
-    def __init__(self, tcp_client: TcpConnection):
-        self.__tcp_client = tcp_client
+    def __init__(self, tcp_connection: TcpConnection):
+        self.__tcp_connection = tcp_connection
         self.__buffer = []
 
     @property
-    def tcp_client(self):
-        return self.__tcp_client
+    def tcp_connection(self):
+        return self.__tcp_connection
 
     def send_command(self, command: str):
         if not command.endswith(END_OF_LINE):
             command += END_OF_LINE
 
-        self.__tcp_client.send(bytes(command, 'utf-8'))
+        self.__tcp_connection.send(bytes(command, 'utf-8'))
 
     def receive_answer(self) -> FtpAnswer:
         if not self._buffer_is_empty():
@@ -124,7 +124,7 @@ class FtpConnection:
         line = ''
 
         while not line.endswith(END_OF_LINE):
-            next_byte = self.__tcp_client.receive(1).decode('utf-8')
+            next_byte = self.__tcp_connection.receive(1).decode('utf-8')
             line += next_byte
 
         return line

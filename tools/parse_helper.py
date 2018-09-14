@@ -2,6 +2,7 @@
 
 import re
 
+from network.address import Address
 
 _address_regexp = re.compile('\(\d{1,3},\d{1,3},\d{1,3},\d{1,3},\d{1,3},\d{1,3}\)', re.M)
 _size_regexp = re.compile('\d+ bytes')
@@ -11,7 +12,7 @@ def parse_address_from_string(address: str):
     tokens = re.split('[ \t,]', address)
     if len(tokens) != 6:
         return None
-    return '.'.join(tokens[0:4]), int(tokens[4]) * 256 + int(tokens[5])
+    return Address('.'.join(tokens[0:4]), int(tokens[4]) * 256 + int(tokens[5]))
 
 
 def extract_address_from_text(text: str) -> [str, None]:

@@ -39,15 +39,9 @@ def main():
     tcp_client = TcpConnection(address, 30.0)
     ftp_client = FtpConnection(tcp_client)
 
-    for i in ftp_client.receive_all():
-        print(i)
-
     while True:
         c = input("$> ")
         ftp_client.send_command(c)
-
-        for i in ftp_client.receive_all():
-            print(i)
 
 
 if __name__ == '__main__':
