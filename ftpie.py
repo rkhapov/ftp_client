@@ -3,10 +3,8 @@
 import argparse
 import re
 
-from commands.factory import CommandFactory
+# from commands.factory import CommandFactory
 from network.address import Address
-from network.ftp import FtpConnection
-from network.tcp import TcpConnection
 
 
 def parse_address(address: str):
@@ -35,13 +33,7 @@ def parse_address_from_args():
 
 
 def main():
-    address = parse_address_from_args()
-    tcp_client = TcpConnection(address, 30.0)
-    ftp_client = FtpConnection(tcp_client)
-
-    while True:
-        c = input("$> ")
-        ftp_client.send_command(c)
+    raise TimeoutError
 
 
 if __name__ == '__main__':

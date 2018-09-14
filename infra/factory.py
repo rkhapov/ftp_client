@@ -1,30 +1,7 @@
 #!/usr/bin/env python3
-import os
 import re
 
-from commands.command import Command, CommandParser
-from importlib import import_module
-
-# crutch for import all files from directory
-# what the fuck!
-# why i must do this by myself???!!!
-
-
-def _get_submodules():
-    parts = __name__.split('.')
-    result = ''
-
-    for i in range(len(parts) - 1):
-        result += parts[i] + '.'
-
-    return result
-
-
-files = [os.path.splitext(f)[0] for f in os.listdir(os.path.dirname(__file__)) if
-         not f.startswith('__') and f != os.path.basename(__file__) and f.endswith(".py")]
-
-for f in files:
-    import_module('{}{}'.format(_get_submodules(), f))
+from infra.command import Command, CommandParser
 
 
 class CommandFactory:

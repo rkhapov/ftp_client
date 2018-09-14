@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from abc import abstractmethod
 
-from network.client import FtpClient
+from protocol.ftp import FtpClient
 
 
 class Command:
