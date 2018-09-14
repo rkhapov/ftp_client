@@ -9,26 +9,35 @@ class Timer:
         self._interval = interval
         self._thread = threading.Thread(target=self._thread_target, daemon=True)
         self._killed = False
+        self._pause = True
         self._elapsed = 0.0
 
     def start(self):
+        self._pause = False
         if not self._thread.is_alive():
             self._thread.start()
+
+    def pause(self):
+        self._pause = True
+
+    def stop(self):
+        self._pause = True
+        self._elapsed = 0.0
+
+    def kill(self):
+        self._killed = True
+
+    @property
+    def interval(self):
+        return self._interval
+
+    @property
+    def milliseconds(self):
+        return self._elapsed
 
     def _thread_target(self):
         while not self._killed:
             time.sleep(self._interval)
 
-            self._elapsed += self._interval
-
-    def set_interval(self, interval):
-        self._interval = interval
-
-    def get_interval(self):
-        return self._interval
-
-    def kill(self):
-        self._killed = True
-
-    def get_elapsed(self):
-        return self._elapsed
+            if not self._pause:
+                self._elapsed += self._interval
