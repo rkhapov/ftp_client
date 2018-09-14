@@ -15,4 +15,4 @@ def get_progress_bar(current_length, speed, size=None, length=40):
             percent,
             speed / 1024)
 
-    return 'Transfering with speed {:.2f} KB/s...'.format(speed / 1024)
+    return 'Transferring with speed {:.2f} KB/s...'.format(speed / 1024)

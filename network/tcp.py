@@ -3,9 +3,10 @@
 import socket
 
 from network.address import Address
+from network.connection import Connection
 
 
-class TcpConnection:
+class TcpConnection(Connection):
     def __init__(self, address: Address, timeout=None):
         self.__address = address
         self.__timeout = timeout

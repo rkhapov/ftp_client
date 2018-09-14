@@ -1,5 +1,1 @@
-The data transfer is over the data connection in type ASCII or type EBCDIC.
-(The user must ensure that the TYPE is appropriately ASCII or EBCDIC).
-Since the information on a file may vary widely from system to system,
-this information may be hard to use automatically in a program,
-but may be quite useful to a human user.
+размер файла не парсим, либо как в wget, либо через команду SIZE

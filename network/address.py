@@ -13,7 +13,7 @@ class Address:
         self.__port = port
 
     @property
-    def ip(self):
+    def host(self):
         return self.__host
 
     @property
@@ -23,3 +23,12 @@ class Address:
     @property
     def as_tuple(self):
         return self.__host, self.__port
+
+    def __eq__(self, other):
+        if other is None:
+            return False
+
+        if not isinstance(other, Address):
+            return False
+
+        return self.__host == other.host and self.__port == other.port
