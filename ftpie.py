@@ -1,10 +1,9 @@
-#!/usr/bin/env python3
-
 import argparse
 import re
 
 # from commands.factory import CommandFactory
 from network.address import Address
+from network.tcp import TcpConnection
 
 
 def parse_address(address: str):
@@ -33,7 +32,8 @@ def parse_address_from_args():
 
 
 def main():
-    raise TimeoutError
+    address = parse_address_from_args()
+    tcp_connection = TcpConnection(address)
 
 
 if __name__ == '__main__':

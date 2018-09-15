@@ -1,5 +1,4 @@
-#!/usr/bin/env python3
-from abc import abstractmethod, abstractproperty
+from abc import abstractmethod
 
 
 class Connection:

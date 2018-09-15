@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-
-
 class Address:
     def __init__(self, host: str, port: int):
         if not isinstance(host, str):

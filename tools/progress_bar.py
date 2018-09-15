@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-
-
 def get_progress_bar(current_length, speed, size=None, length=40):
     if size is not None:
         percent = current_length / size * 100
