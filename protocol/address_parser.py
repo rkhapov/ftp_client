@@ -6,7 +6,7 @@ _address_regexp = re.compile('\d{1,3},\d{1,3},\d{1,3},\d{1,3},\d{1,3},\d{1,3}', 
 
 
 def parse_address_from_string(address: str):
-    tokens = re.split('[ \t,]', address)
+    tokens = [t for t in re.split('[ \t,]', address) if t != '' and t.isnumeric()]
     if len(tokens) != 6:
         return None
     return Address('.'.join(tokens[0:4]), int(tokens[4]) * 256 + int(tokens[5]))

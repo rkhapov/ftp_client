@@ -3,21 +3,22 @@ from infra.environment import Environment
 from protocol.ftp import FtpClient
 
 
-class ListCommand(Command):
+class ExitCommand(Command):
     def __init__(self, environment: Environment):
         super().__init__(environment)
 
     def execute(self, client: FtpClient):
-        raise NotImplementedError
+        self.environment.closed = True
+        print(client.execute('quit').text)
 
     @staticmethod
     def help():
-        return 'print directory content'
+        return 'exit from ftpie'
 
     @staticmethod
     def name():
-        return 'ls'
+        return 'exit'
 
     @staticmethod
     def format():
-        return 'ls $dir'
+        return 'exit'

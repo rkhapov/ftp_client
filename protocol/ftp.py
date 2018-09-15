@@ -10,6 +10,9 @@ class FtpClient:
         self.__replies_reader = RepliesReader(connection)
         self.__command_sender = CommandSender(connection)
 
+    def start(self) -> Reply:
+        return self.__replies_reader.read_next_reply()
+
     @property
     def connection(self):
         return self.__replies_reader.connection

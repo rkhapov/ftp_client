@@ -4,7 +4,7 @@ from protocol.ftp import FtpClient
 
 class PwdCommand(Command):
     def execute(self, client: FtpClient):
-        raise NotImplemented
+        raise NotImplementedError
 
     @staticmethod
     def help():

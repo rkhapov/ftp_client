@@ -4,18 +4,22 @@ from abc import abstractmethod
 class Connection:
     @abstractmethod
     def receive(self, buff_size) -> bytes:
-        raise NotImplemented
+        raise NotImplementedError
 
     @abstractmethod
     def send(self, data: bytes):
-        raise NotImplemented
+        raise NotImplementedError
+
+    @abstractmethod
+    def close(self):
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def address(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def timeout(self):
-        raise NotImplemented
+        raise NotImplementedError

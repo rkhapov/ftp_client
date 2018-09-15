@@ -8,7 +8,7 @@ class CdCommand(Command):
         super().__init__(environment)
 
     def execute(self, client: FtpClient):
-        raise NotImplemented
+        raise NotImplementedError
 
     @staticmethod
     def help():

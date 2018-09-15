@@ -95,12 +95,6 @@ class CommandFactoryUnitTests(unittest.TestCase):
         self.assertIsInstance(sut, LoginCommand)
         self.assertEqual(sut.arguments, {'user': 'myuser', 'password': 'pass'})
 
-    def test_from_string__logout_command__should_return_right_command(self):
-        sut = self.factory.from_string('logout', self.environment)
-
-        self.assertIsInstance(sut, LogoutCommand)
-        self.assertEqual(sut.arguments, {})
-
     def test_from_string__pasv_command__should_return_right_command(self):
         sut = self.factory.from_string('pasv', self.environment)
 

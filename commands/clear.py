@@ -1,23 +1,24 @@
+import os
+
 from infra.command import Command
-from infra.environment import Environment
 from protocol.ftp import FtpClient
 
 
-class LogoutCommand(Command):
-    def __init__(self, environment: Environment):
+class ClearCommand(Command):
+    def __init__(self, environment):
         super().__init__(environment)
 
     def execute(self, client: FtpClient):
-        pass
+        os.system('cls' if os.name == 'nt' else 'clear')
 
     @staticmethod
     def help():
-        return 'logout current user'
+        return 'clears screen'
 
     @staticmethod
     def name():
-        return 'logout'
+        return 'clear'
 
     @staticmethod
     def format():
-        return 'logout'
+        return 'clear'

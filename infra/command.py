@@ -30,21 +30,24 @@ class Command:
 
         return self.__arguments[name]
 
+    def has_argument(self, name):
+        return name.lower() in self.__arguments
+
     @abstractmethod
     def execute(self, client: FtpClient):
-        raise NotImplemented
+        raise NotImplementedError
 
     @staticmethod
     @abstractmethod
     def help():
-        raise NotImplemented
+        raise NotImplementedError
 
     @staticmethod
     @abstractmethod
     def name():
-        raise NotImplemented
+        raise NotImplementedError
 
     @staticmethod
     @abstractmethod
     def format():
-        raise NotImplemented
+        raise NotImplementedError

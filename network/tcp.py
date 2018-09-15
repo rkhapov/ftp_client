@@ -29,3 +29,6 @@ class TcpConnection(Connection):
 
     def receive(self, buf_size: int):
         return self.__socket.recv(buf_size)
+
+    def close(self):
+        self.__socket.close()
