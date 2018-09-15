@@ -21,19 +21,3 @@ class Command:
     @property
     def name(self):
         raise NotImplemented
-
-
-class CommandParser:
-    @abstractmethod
-    def parse(self, tokens):
-        raise NotImplemented
-
-    @abstractmethod
-    @property
-    def parse_identifier(self):
-        raise NotImplemented
-
-    @abstractmethod
-    @property
-    def minimal_tokens_amount(self):
-        raise NotImplemented

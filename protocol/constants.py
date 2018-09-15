@@ -1,0 +1,1 @@
+END_OF_LINE = '\r\n'

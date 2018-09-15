@@ -1,8 +1,8 @@
 from network.connection import Connection
 from protocol.reply import Reply
 from tools.parse_helpers import try_parse_int
+from protocol.constants import END_OF_LINE
 
-END_OF_LINE = '\r\n'
 READ_BLOCK_SIZE = 1
 
 

@@ -1,27 +1,41 @@
-from network.tcp import TcpConnection
+from network.connection import Connection
+from protocol.command_sender import CommandSender
 from protocol.replies_reader import RepliesReader
-
-
-class FtpRequest:
-    pass
-
-
-class FtpResponse:
-    pass
+from protocol.reply import Reply
+from protocol.status import is_positive_preliminary_code
 
 
 class FtpClient:
-    def __init__(self, tcp_connection: TcpConnection):
-        self.__tcp_connection = tcp_connection
-        self.__replies_reader = RepliesReader(self.__tcp_connection)
+    def __init__(self, connection: Connection):
+        self.__replies_reader = RepliesReader(connection)
+        self.__command_sender = CommandSender(connection)
 
     @property
-    def tcp_connection(self):
-        return self.__tcp_connection
+    def connection(self):
+        return self.__replies_reader.connection
 
     @property
     def replies_reader(self):
         return self.__replies_reader
 
-    def execute(self, request: FtpRequest) -> FtpResponse:
-        pass
+    @property
+    def command_sender(self):
+        return self.__command_sender
+
+    def execute(self, cmd: str, positive_preliminary_handler=None) -> Reply:
+        self.__command_sender.send_command(cmd)
+
+        reply = self.__replies_reader.read_next_reply()
+
+        if not is_positive_preliminary_code(reply.status_code):
+            return reply
+
+        if positive_preliminary_handler is None:
+            raise ValueError('positive preliminary handler are None, but reply with code {} are received'
+                             .format(reply.status_code))
+
+        positive_preliminary_handler(reply)
+
+        end_reply = self.__replies_reader.read_next_reply()
+
+        return end_reply
