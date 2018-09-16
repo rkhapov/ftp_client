@@ -7,9 +7,8 @@ class ConnectionMode(Enum):
 
 
 class Environment:
-    def __init__(self, connection_mode, port_address, closed, commands):
+    def __init__(self, connection_mode, closed, commands):
         self.connection_mode = connection_mode
-        self.port_address = port_address
         self.closed = closed
         self.__commands = commands
 
@@ -36,21 +35,10 @@ class Environment:
 
         self.__connection_mode = value
 
-    @property
-    def port_address(self):
-        return self.__port_address
-
-    @port_address.setter
-    def port_address(self, value: str):
-        if not isinstance(value, str):
-            raise ValueError('value of port address must be of type str')
-
-        self.__port_address = value
-
 
 class EnvironmentBuilder:
     def __init__(self):
         pass
 
     def build(self, commands):
-        return Environment(ConnectionMode.PASSIVE, '', False, commands)
+        return Environment(ConnectionMode.PASSIVE, False, commands)

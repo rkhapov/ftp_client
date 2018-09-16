@@ -1,5 +1,6 @@
 from network.connection import Connection
 from protocol.reply import Reply
+from tools import decoder
 from tools.parse_helpers import try_parse_int
 from protocol.constants import END_OF_LINE
 
@@ -55,6 +56,7 @@ class RepliesReader:
         line = ''
 
         while not line.endswith(END_OF_LINE):
-            line += self.__connection.receive(READ_BLOCK_SIZE).decode()
+
+            line += decoder.decode_bytes(self.__connection.receive(READ_BLOCK_SIZE))
 
         return line

@@ -1,7 +1,10 @@
 from abc import abstractmethod
 
 from infra.environment import Environment
+from network.address import Address
+from protocol.address_parser import extract_address_from_text
 from protocol.ftp import FtpClient
+from protocol.status import StatusCode
 
 
 class Command:
@@ -51,3 +54,12 @@ class Command:
     @abstractmethod
     def format():
         raise NotImplementedError
+
+    def _entry_pasv(self, client: FtpClient):
+        pasv_reply = client.execute('pasv')
+
+        if pasv_reply.status_code == StatusCode.ENTERING_PASSIVE_MODE.value:
+            return extract_address_from_text(pasv_reply.text)
+
+        print(pasv_reply.text)
+        return None

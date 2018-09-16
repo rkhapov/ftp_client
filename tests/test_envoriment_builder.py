@@ -8,7 +8,7 @@ class EnvironmentBuilderUnitTests(unittest.TestCase):
         from infra.environment import EnvironmentBuilder, ConnectionMode
         builder = EnvironmentBuilder()
 
-        sut = builder.build()
+        sut = builder.build(None)
 
         self.assertEqual(sut.connection_mode, ConnectionMode.PASSIVE)
         self.assertEqual(sut.port_address, '')

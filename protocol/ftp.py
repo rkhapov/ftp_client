@@ -2,7 +2,7 @@ from network.connection import Connection
 from protocol.command_sender import CommandSender
 from protocol.replies_reader import RepliesReader
 from protocol.reply import Reply
-from protocol.status import is_positive_preliminary_code
+from protocol.status import is_positive_preliminary_code, StatusCode
 
 
 class FtpClient:
@@ -36,9 +36,11 @@ class FtpClient:
         if positive_preliminary_handler is None:
             raise ValueError('positive preliminary handler are None, but reply with code {} are received'
                              .format(reply.status_code))
-
         positive_preliminary_handler(reply)
 
         end_reply = self.__replies_reader.read_next_reply()
 
         return end_reply
+
+    def has_size_command(self):
+        return self.execute('size myfile').status_code != StatusCode.COMMAND_UNRECOGNIZED.value

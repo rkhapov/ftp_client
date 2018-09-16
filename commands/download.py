@@ -1,6 +1,9 @@
 from infra.command import Command
-from infra.environment import Environment
+from infra.environment import Environment, ConnectionMode
+from network.downloader import download_data_from_connection
+from network.tcp import TcpConnection
 from protocol.ftp import FtpClient
+from tools.parse_helpers import try_parse_int
 
 
 class DownloadCommand(Command):
@@ -8,7 +11,10 @@ class DownloadCommand(Command):
         super().__init__(environment)
 
     def execute(self, client: FtpClient):
-        raise NotImplementedError
+        if self.environment.connection_mode == ConnectionMode.PASSIVE:
+            self._execute_passive(client)
+        else:
+            raise NotImplementedError
 
     @staticmethod
     def help():
@@ -21,3 +27,36 @@ class DownloadCommand(Command):
     @staticmethod
     def format():
         return 'download filename $outfilename'
+
+    def _execute_passive(self, client):
+        size = self._get_size(client)
+        address = self._entry_pasv(client)
+
+        if address is None:
+            return
+
+        connection = TcpConnection(address, 15)
+
+        def download_file(a):
+            try:
+                outname = self.get_argument('outfilename') if self.has_argument('outfilename') \
+                    else self.get_argument('filename')
+                with open(outname, 'wb') as file:
+                    data = download_data_from_connection(connection, size)
+                    file.write(data)
+            except IOError as error:
+                print('Cant create output file: {}'.format(error.strerror))
+            finally:
+                connection.close()
+
+        reply = client.execute('retr {}'.format(self.get_argument('filename')), download_file)
+
+        print(reply.text)
+
+    def _get_size(self, client: FtpClient):
+        if client.has_size_command():
+            text = client.execute("size {}".format(self.get_argument('filename'))).text.strip()
+            parsed, value = try_parse_int(text)
+            if parsed:
+                return value
+        return None

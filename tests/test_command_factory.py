@@ -5,7 +5,6 @@ from commands.download import DownloadCommand
 from commands.help import HelpCommand
 from commands.list import ListCommand
 from commands.login import LoginCommand
-from commands.logout import LogoutCommand
 from commands.pasv import PasvCommand
 from commands.port import PortCommand
 from commands.pwd import PwdCommand
@@ -17,7 +16,7 @@ from infra.factory import CommandFactory
 class CommandFactoryUnitTests(unittest.TestCase):
     def setUp(self):
         self.factory = CommandFactory()
-        self.environment = EnvironmentBuilder().build()
+        self.environment = EnvironmentBuilder().build(self.factory.commands)
 
     def test_from_string__no_any_tokens__should_raise_value_exception(self):
         with self.assertRaises(ValueError):

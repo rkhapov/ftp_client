@@ -6,7 +6,7 @@ from infra.environment import EnvironmentBuilder, ConnectionMode
 
 class PortCommandUnitTests(unittest.TestCase):
     def test_execute__with_correct_address__should_change_environment_right(self):
-        environment = EnvironmentBuilder().build()
+        environment = EnvironmentBuilder().build(None)
         cmd = PortCommand(environment)
         cmd.add_argument('address', '192,168,1,1,6,7')
 
@@ -16,7 +16,7 @@ class PortCommandUnitTests(unittest.TestCase):
         self.assertEqual(environment.port_address, '192,168,1,1,6,7')
 
     def test_execute__with_incorrect_address__should_raise_value_error(self):
-        environment = EnvironmentBuilder().build()
+        environment = EnvironmentBuilder().build(None)
         cmd = PortCommand(environment)
         cmd.add_argument('address', 'not_an_address_lol')
 

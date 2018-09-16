@@ -1,21 +1,7 @@
 ftpie is a simple ftp client written in python
 
 usage: python3 ftpie.py
-
-List of available commands:
-
-cd <dir>
-ls <name>
-help <command>
-download <filename> <out_file_name>
-upload <filename> <out_file_name>
-login
-logout
-pasv
-port <address>
-quit
-
-see ftpie.py -h or help for more information
+see ftpie.py -h or help for more informatio
 
 specification of ftp:
 https://tools.ietf.org/html/rfc959

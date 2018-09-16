@@ -3,8 +3,11 @@ from protocol.ftp import FtpClient
 
 
 class PwdCommand(Command):
+    def __init__(self, environment):
+        super().__init__(environment)
+
     def execute(self, client: FtpClient):
-        raise NotImplementedError
+        print(client.execute('pwd').text)
 
     @staticmethod
     def help():

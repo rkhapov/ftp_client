@@ -3,10 +3,11 @@ import re
 from commands import *
 from infra.command import Command
 from infra.environment import Environment
+from tools.splitter import split_without_escaped
 
 
 def _create_command(cmd, tokens, environment):
-    format_tokens = [f.lower() for f in re.split('[ \t]', cmd.format()) if f != ''][1:]
+    format_tokens = split_without_escaped(cmd.format())[1:]
     tokens = tokens[1:]
 
     if len(tokens) < len([f for f in format_tokens if not f.startswith('$')]):
@@ -32,13 +33,13 @@ class CommandFactory:
         return self.__commands
 
     def from_string(self, cmd: str, environment: Environment):
-        tokens = [s.lower() for s in re.split('[ \t]', cmd) if s != '']
+        tokens = [f.replace(r'\ ', ' ') for f in split_without_escaped(cmd)]
 
         if len(tokens) == 0:
             raise ValueError('empty string')
 
         for cmd in self.__commands:
-            if cmd.name() == tokens[0]:
+            if cmd.name().lower() == tokens[0].lower():
                 return _create_command(cmd, tokens, environment)
 
         raise ValueError('unknown command')

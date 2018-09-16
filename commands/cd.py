@@ -8,7 +8,14 @@ class CdCommand(Command):
         super().__init__(environment)
 
     def execute(self, client: FtpClient):
-        raise NotImplementedError
+        directory = self.get_argument('directory')
+
+        if directory == '..':
+            reply = client.execute('cdup')
+        else:
+            reply = client.execute('cwd {}'.format(directory))
+
+        print(reply.text)
 
     @staticmethod
     def help():

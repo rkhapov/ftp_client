@@ -1,5 +1,6 @@
 import argparse
 import re
+import socket
 
 from infra.environment import EnvironmentBuilder
 from infra.factory import CommandFactory
@@ -33,9 +34,9 @@ def parse_address_from_args():
     return Address(address[0], address[1])
 
 
-def get_client():
+def get_client(timeout):
     address = parse_address_from_args()
-    tcp_connection = TcpConnection(address)
+    tcp_connection = TcpConnection(address, timeout)
     client = FtpClient(tcp_connection)
     factory = CommandFactory()
     environment = EnvironmentBuilder().build(factory.commands)
@@ -52,12 +53,12 @@ def execute_next_command(client, environment, factory):
     except NotImplementedError:
         print('Operation are not implemented yet')
     except ValueError as e:
-        print(e.args[0])
+        print('Error: {}'.format(e.args[0]))
 
 
 def main():
     try:
-        client, environment, factory = get_client()
+        client, environment, factory = get_client(15)
 
         # receive hello from server
         print(client.start().text)
@@ -67,10 +68,21 @@ def main():
 
         client.connection.close()
 
-    except TimeoutError:
-        print('Network operation timeout, check for network is reachable')
+    except socket.timeout:
+        print('Network operation timeout, check if network is reachable')
     except SyntaxError as e:
         print(e.text)
+    except ConnectionResetError as e:
+        print('server broke the connection: {}'.format(e.strerror))
+    except ConnectionAbortedError as e:
+        print('connection was aborted: {}'.format(e.strerror))
+    except ConnectionError as e:
+        print('connection error: {}'.format(e.strerror))
+    except ImportError as e:
+        if e.name == 'chardet':
+            print('you need to install chardet package')
+        else:
+            raise
 
 
 if __name__ == '__main__':

@@ -30,7 +30,7 @@ class Timer:
         return self._interval
 
     @property
-    def milliseconds(self):
+    def elapsed(self):
         return self._elapsed
 
     def _thread_target(self):
