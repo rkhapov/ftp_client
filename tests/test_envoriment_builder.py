@@ -11,4 +11,3 @@ class EnvironmentBuilderUnitTests(unittest.TestCase):
         sut = builder.build(None)
 
         self.assertEqual(sut.connection_mode, ConnectionMode.PASSIVE)
-        self.assertEqual(sut.port_address, '')

@@ -100,15 +100,10 @@ class CommandFactoryUnitTests(unittest.TestCase):
         self.assertIsInstance(sut, PasvCommand)
         self.assertEqual(sut.arguments, {})
 
-    def test_from_string__port_command_without_address__should_raise_value_exception(self):
-        with self.assertRaises(ValueError):
-            self.factory.from_string('port  ', self.environment)
-
     def test_from_string__port_command__should_return_right_command(self):
-        sut = self.factory.from_string('port 197,123,14,1,2,4', self.environment)
+        sut = self.factory.from_string('port', self.environment)
 
         self.assertIsInstance(sut, PortCommand)
-        self.assertEqual(sut.arguments, {'address': '197,123,14,1,2,4'})
 
     def test_from_string__pwd_command__should_return_right_command(self):
         sut = self.factory.from_string('pwd', self.environment)
