@@ -22,7 +22,7 @@ def _download_exact_amount_from_connection(connection, size):
         for b in next_part:
             data.append(b)
 
-        speed = len(data) / (timer.elapsed + 1e-6) / 1024 * 1000
+        speed = len(data) / (timer.elapsed + 1e-6)
 
         bar = get_progress_bar(len(data), speed, size)
         print('\r{}{}'.format(bar, ' ' * (max_len - len(bar))), end='')
@@ -49,7 +49,7 @@ def _download_all_from_connection(connection):
         for b in next_part:
             data.append(b)
 
-        speed = len(data) / (timer.elapsed + 1e-6) / 1024 * 1000
+        speed = len(data) / (timer.elapsed + 1e-6)
 
         bar = get_progress_bar(len(data), speed)
         print('\r{}{}'.format(bar, ' ' * (max_len - len(bar))), end='')

@@ -1,5 +1,7 @@
 from infra.command import Command
-from infra.environment import Environment
+from infra.environment import Environment, ConnectionMode
+from network import uploader
+from network.tcp import TcpConnection
 from protocol.ftp import FtpClient
 
 
@@ -8,7 +10,10 @@ class UploadCommand(Command):
         super().__init__(environment)
 
     def execute(self, client: FtpClient):
-        raise NotImplementedError
+        if self.environment.connection_mode == ConnectionMode.PASSIVE:
+            self._upload_passive(client)
+        else:
+            raise NotImplementedError
 
     @staticmethod
     def help():
@@ -21,3 +26,38 @@ class UploadCommand(Command):
     @staticmethod
     def format():
         return 'upload filename $outfilename'
+
+    def _get_data_to_upload(self):
+        try:
+            with open(self.get_argument('filename'), 'rb') as file:
+                return file.read()
+        except:
+            print('Cant open file {}'.format(self.get_argument('filename')))
+            return None
+
+    def _get_out_file_name(self):
+        if self.has_argument('outfilename'):
+            return self.get_argument('outfilename')
+        return self.get_argument('filename')
+
+    def _upload_passive(self, client: FtpClient):
+        data = self._get_data_to_upload()
+        out_file_name = self._get_out_file_name()
+
+        if data is None:
+            return
+
+        address = self._entry_pasv(client)
+
+        if address is None:
+            return
+
+        connection = TcpConnection(address, 15)
+
+        def upload_file(a):
+            uploader.upload_data_at_connection(connection, data)
+            connection.close()
+
+        reply = client.execute("STOR {}".format(out_file_name), upload_file)
+
+        print(reply.text)
