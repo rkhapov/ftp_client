@@ -23,8 +23,6 @@ def parse_args():
 
 def get_client(timeout):
     address, is_ipv6 = parse_args()
-    print(address.host, address.port)
-    exit(0)
     factory = CommandFactory()
     environment = EnvironmentBuilder().build(factory.commands, is_ipv6)
     tcp_connection = TcpConnection(address, timeout, is_ipv6)
@@ -59,6 +57,8 @@ def main():
 
     except socket.timeout:
         print('Network operation timeout, check if network is reachable')
+    except socket.gaierror as e:
+        print(e.strerror)
     except SyntaxError as e:
         print(e.text)
     except ConnectionResetError as e:

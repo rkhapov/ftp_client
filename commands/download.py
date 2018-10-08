@@ -35,8 +35,10 @@ class DownloadCommand(Command):
         if address is None:
             return
 
-        with TcpConnection(address, 15) as connection:
-            def download_file(a):
+        connection = TcpConnection(address, 15)
+
+        def download_file(a):
+            with connection:
                 try:
                     outname = self._get_outputname()
                     with open(outname, 'wb') as file:
@@ -44,7 +46,8 @@ class DownloadCommand(Command):
                         file.write(data)
                 except IOError as error:
                     print('Cant create output file: {}'.format(error.strerror))
-            reply = client.execute('retr {}'.format(self.get_argument('filename')), download_file)
+
+        reply = client.execute('retr {}'.format(self.get_argument('filename')), download_file)
 
         print(reply.text)
 

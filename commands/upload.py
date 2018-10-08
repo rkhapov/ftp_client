@@ -52,10 +52,12 @@ class UploadCommand(Command):
         if address is None:
             return
 
-        with TcpConnection(address, 15) as connection:
-            def upload_file(a):
+        connection = TcpConnection(address, 15)
+
+        def upload_file(a):
+            with connection:
                 uploader.upload_data_at_connection(connection, data)
 
-            reply = client.execute("STOR {}".format(out_file_name), upload_file)
+        reply = client.execute("STOR {}".format(out_file_name), upload_file)
 
         print(reply.text)

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-from abc import abstractmethod
+from abc import *
 
 from network.address import Address
 from network.connection import Connection
 
 
 class Server:
-    @abstractmethod
     @property
+    @abstractmethod
     def socket(self):
         raise NotImplementedError
 
