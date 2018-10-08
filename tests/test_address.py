@@ -2,6 +2,7 @@
 import unittest
 
 from network.address import Address
+from protocol import address_parser
 
 
 class AddressUnitTests(unittest.TestCase):
@@ -18,3 +19,11 @@ class AddressUnitTests(unittest.TestCase):
         sut = address.ftp_address
 
         self.assertEqual(sut, '192,168,1,1,' + str(0xA5) + ',' + str(0x66))
+
+    def test_ftp_address__ipv4_after_parsing__should_return_origin_address(self):
+        origin = Address('192.168.1.1', 45321)
+        ftp = origin.ftp_address
+
+        sut = address_parser.parse_address_from_string(ftp)
+
+        self.assertEqual(sut, origin)
