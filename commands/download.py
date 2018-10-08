@@ -35,21 +35,16 @@ class DownloadCommand(Command):
         if address is None:
             return
 
-        connection = TcpConnection(address, 15)
-
-        def download_file(a):
-            try:
-                outname = self.get_argument('outfilename') if self.has_argument('outfilename') \
-                    else self.get_argument('filename')
-                with open(outname, 'wb') as file:
-                    data = download_data_from_connection(connection, size)
-                    file.write(data)
-            except IOError as error:
-                print('Cant create output file: {}'.format(error.strerror))
-            finally:
-                connection.close()
-
-        reply = client.execute('retr {}'.format(self.get_argument('filename')), download_file)
+        with TcpConnection(address, 15) as connection:
+            def download_file(a):
+                try:
+                    outname = self._get_outputname()
+                    with open(outname, 'wb') as file:
+                        data = download_data_from_connection(connection, size)
+                        file.write(data)
+                except IOError as error:
+                    print('Cant create output file: {}'.format(error.strerror))
+            reply = client.execute('retr {}'.format(self.get_argument('filename')), download_file)
 
         print(reply.text)
 
@@ -60,3 +55,6 @@ class DownloadCommand(Command):
             if parsed:
                 return value
         return None
+
+    def _get_outputname(self):
+        return self.get_argument('outfilename') if self.has_argument('outfilename') else self.get_argument('filename')

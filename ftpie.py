@@ -7,39 +7,28 @@ from infra.factory import CommandFactory
 from network.address import Address
 from network.tcp import TcpConnection
 from protocol.ftp import FtpClient
+from tools.get_ip import get_ipv4, get_ipv6
 
 
-def parse_address(address: str):
-    tokens = [t for t in re.split(':', address) if t != '']
-
-    if len(tokens) == 1:
-        return tokens[0], 21
-
-    if len(tokens) != 2:
-        raise SyntaxError('Address string should have one of formats:\n'
-                          '<host>:<port>\n'
-                          '<host> in case port 21 are used')
-
-    return tokens[0], int(tokens[1])
-
-
-def parse_address_from_args():
+def parse_args():
     parser = argparse.ArgumentParser(description='Simple ftp client on python')
     parser.add_argument('address', help='address of ftp server', type=str)
+    parser.add_argument('--port', '--p', help='port to connect, default is 21', type=int, default=21)
+    parser.add_argument('--ipv6', help='enable ipv6 mode', action='store_true')
 
     args = parser.parse_args()
 
-    address = parse_address(args.address)
-
-    return Address(address[0], address[1])
+    return Address(args.address, args.port), args.ipv6
 
 
 def get_client(timeout):
-    address = parse_address_from_args()
-    tcp_connection = TcpConnection(address, timeout)
-    client = FtpClient(tcp_connection)
+    address, is_ipv6 = parse_args()
+    print(address.host, address.port)
+    exit(0)
     factory = CommandFactory()
-    environment = EnvironmentBuilder().build(factory.commands)
+    environment = EnvironmentBuilder().build(factory.commands, is_ipv6)
+    tcp_connection = TcpConnection(address, timeout, is_ipv6)
+    client = FtpClient(tcp_connection)
 
     return client, environment, factory
 
