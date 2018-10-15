@@ -14,7 +14,7 @@ class DownloadCommand(Command):
         if self.environment.connection_mode == ConnectionMode.PASSIVE:
             self._execute_passive(client)
         else:
-            raise NotImplementedError
+            self._execute_port(client)
 
     @staticmethod
     def help():
@@ -27,6 +27,35 @@ class DownloadCommand(Command):
     @staticmethod
     def format():
         return 'download filename $outfilename'
+
+    def _execute_port(self, client):
+        size = self._get_size(client)
+        entry = self._entry_port(client)
+        filename = self.get_argument('filename')
+        outname = self._get_outputname()
+
+        if entry is None:
+            return
+
+        if entry == 'NAT':
+            reply = client.execute(f'retr {filename}', lambda x: print(x.text))
+            print(reply.text)
+        else:
+            server, connection, address = entry
+
+            with server:
+                def download_file(a):
+                    with connection:
+                        try:
+                            with open(outname, 'wb') as file:
+                                data = download_data_from_connection(connection, size)
+                                file.write(data)
+                        except IOError as e:
+                            print('Cant create output file: {}'.format(e.strerror))
+
+                reply = client.execute('retr {}'.format(filename), download_file)
+
+                print(reply.text)
 
     def _execute_passive(self, client):
         size = self._get_size(client)
