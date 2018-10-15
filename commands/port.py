@@ -1,6 +1,5 @@
 from infra.command import Command
 from infra.environment import Environment, ConnectionMode
-from protocol import address_parser
 from protocol.ftp import FtpClient
 
 

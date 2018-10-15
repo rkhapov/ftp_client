@@ -17,7 +17,7 @@ class Environment:
         self.__ipv6_mode = ipv6_mode
 
     @property
-    def ipv6_mode(self):
+    def is_ipv6_mode(self):
         return self.__ipv6_mode
 
     @property
@@ -59,7 +59,7 @@ class Environment:
 
     @property
     def is_under_nat(self):
-        if self.ipv6_mode:
+        if self.is_ipv6_mode:
             return False
 
         if self.ipv4_address is None:

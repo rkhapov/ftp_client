@@ -1,14 +1,11 @@
 import argparse
-import re
 import socket
 
-import tools
 from infra.environment import EnvironmentBuilder
 from infra.factory import CommandFactory
 from network.address import Address
 from network.tcp import TcpConnection
 from protocol.ftp import FtpClient
-from tools.get_ip import get_ipv4, get_ipv6
 
 
 def parse_args():
@@ -73,7 +70,7 @@ def main():
     except SyntaxError as e:
         print(e.text)
     except ConnectionResetError as e:
-        print('server broke the connection: {}'.format(e.strerror))
+        print('server reset the connection: {}'.format(e.strerror))
     except ConnectionAbortedError as e:
         print('connection was aborted: {}'.format(e.strerror))
     except ConnectionError as e:
