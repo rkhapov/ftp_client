@@ -57,6 +57,19 @@ class Environment:
             return self.__ipv6_address
         return self.__ipv4_address
 
+    @property
+    def is_under_nat(self):
+        if self.ipv6_mode:
+            return False
+
+        if self.ipv4_address is None:
+            return False
+
+        # according to RFC1918 there is 3 prefixes of nat
+        return self.ipv4_address.startswith('192.168') or \
+               self.ipv4_address.startswith('172.16') or \
+               self.ipv4_address.startswith('10')
+
 
 class EnvironmentBuilder:
     def __init__(self):

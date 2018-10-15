@@ -2,6 +2,7 @@ import argparse
 import re
 import socket
 
+import tools
 from infra.environment import EnvironmentBuilder
 from infra.factory import CommandFactory
 from network.address import Address
@@ -45,7 +46,17 @@ def execute_next_command(client, environment, factory):
 
 def main():
     try:
+        print('Creating client...')
         client, environment, factory = get_client(15)
+
+        print('Client created')
+        print(f'IPv4 address: {environment.ipv4_address}')
+        print(f'IPv6 address: {environment.ipv6_address}')
+        print(f'Connection mode is {environment.connection_mode}')
+        print(f'Used address: {environment.machine_address}')
+        print(f'Is under NAT: {environment.is_under_nat}')
+        print('Ready for work')
+        print('------------------------------------------------------')
 
         # receive hello from server
         print(client.start().text)
