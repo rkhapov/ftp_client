@@ -56,7 +56,7 @@ class UploadCommand(Command):
 
         def upload_file(a):
             with connection:
-                uploader.upload_data_at_connection(connection, data)
+                uploader.upload(connection, data)
 
         reply = client.execute("STOR {}".format(out_file_name), upload_file)
 

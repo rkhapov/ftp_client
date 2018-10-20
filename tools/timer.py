@@ -39,3 +39,12 @@ class Timer:
 
             if not self._pause:
                 self._elapsed += self._interval
+
+    def __enter__(self):
+        self.stop()
+        self.start()
+
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.kill()

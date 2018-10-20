@@ -1,6 +1,6 @@
 from infra.command import Command
 from infra.environment import Environment, ConnectionMode
-from network.downloader import download_data_from_connection
+from network.downloader import download
 from network.tcp import TcpConnection
 from protocol.ftp import FtpClient
 from tools.parse_helpers import try_parse_int
@@ -30,33 +30,31 @@ class DownloadCommand(Command):
 
     def _execute_port(self, client):
         size = self._get_size(client)
-        entry = self._entry_port(client)
         filename = self.get_argument('filename')
-        outname = self._get_outputname()
+        entry = self._entry_port(client)
 
         if entry is None:
             return
 
-        if entry == 'NAT':
+        if entry == 'external':
             reply = client.execute(f'retr {filename}', lambda x: print(x.text), timeout=None)
             print(reply.text)
-        else:
-            server, connection, address = entry
+            return
 
+        server = entry
+
+        def download_file(a):
             with server:
-                def download_file(a):
-                    with connection:
-                        try:
-                            print('downloading started')
-                            with open(outname, 'wb') as file:
-                                data = download_data_from_connection(connection, size)
-                                file.write(data)
-                        except IOError as e:
-                            print('Cant create output file: {}'.format(e.strerror))
+                con, addr = server.accept()
+                try:
+                    with con, open(self._get_outputname(), 'rb') as file:
+                        download(con, size, lambda x: file.write(x))
+                except IOError as e:
+                    print(f'Cant create file: {e.strerror}')
 
-                reply = client.execute('retr {}'.format(filename), download_file)
+        reply = client.execute(f'retr {filename}', download_file, timeout=None)
 
-                print(reply.text)
+        print(reply.text)
 
     def _execute_passive(self, client):
         size = self._get_size(client)
@@ -70,10 +68,8 @@ class DownloadCommand(Command):
         def download_file(a):
             with connection:
                 try:
-                    outname = self._get_outputname()
-                    with open(outname, 'wb') as file:
-                        data = download_data_from_connection(connection, size)
-                        file.write(data)
+                    with open(self._get_outputname(), 'wb') as file:
+                        download(connection, size, lambda p: file.write(p))
                 except IOError as error:
                     print('Cant create output file: {}'.format(error.strerror))
 

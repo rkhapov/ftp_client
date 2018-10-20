@@ -1,6 +1,6 @@
 from infra.command import Command
 from infra.environment import Environment, ConnectionMode
-from network.downloader import download_data_from_connection
+from network.downloader import download
 from network.tcp import TcpConnection
 from protocol.ftp import FtpClient
 from tools import decoder
@@ -26,8 +26,8 @@ class ShortListCommand(Command):
         connection = TcpConnection(address, 15)
 
         def download_list(a):
-            print(' '.join(decoder.decode_bytes(download_data_from_connection(connection)).split()))
-            connection.close()
+            with connection:
+                print(' '.join(decoder.decode_bytes(download(connection)).split()))
 
         reply = client.execute('nlst', download_list)
 

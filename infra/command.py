@@ -69,40 +69,35 @@ class Command:
         return None
 
     def _entry_port(self, client: FtpClient):
-        if self.environment.connection_mode != ConnectionMode.PORT:
-            raise ValueError('entering into port mode not in port mode of environment')
+        mode = input('Do you want to use this machine as server(yes, no)[yes]:')
 
+        if mode == '' or mode.lower() == 'yes':
+            return self.__get_server_with_current_machine(client)
+        return self.__get_external_server(client)
+
+    def __get_server_with_current_machine(self, client: FtpClient):
         if self.environment.is_under_nat:
-            print('Current machine are under NAT')
-            print('Please, enter address which should be used as receiver')
+            print('Cant create server on machine under nat')
+            return None
 
-            if self.environment.is_ipv6_mode:
-                print('Please, dont forget that current mode is IPv6')
-            else:
-                print('Please, dont forget that current mode is IPv4')
+        server = TcpServer(ipv6_mode=self.environment.is_ipv6_mode, timeout=15)
+        addr = server.listen()
+        ftp_addr = Address(host=self.environment.machine_address, port=addr.port, type=addr.type)
 
-            address_string = input(">")
+        reply = client.execute(f'port {ftp_addr.ftp_address}')
 
-            reply = client.execute(f"port {address_string}")
+        if reply.status_code == StatusCode.COMMAND_OK.value:
+            return server
 
-            if reply.status_code != StatusCode.COMMAND_OK.value:
-                print(reply.text)
-                return None
+        print(reply.text)
+        return None
 
-            return 'NAT'
-        else:
-            address_string = self.environment.machine_address
-            server = TcpServer(timeout=15)
-            addr = server.listen()
-            connection_address = Address(host=address_string,
-                                         port=addr.port,
-                                         type='ipv6' if self.environment.is_ipv6_mode else 'ipv4')
+    def __get_external_server(self, client: FtpClient):
+        address = input('Enter receiver address (in FTP format): ')
+        reply = client.execute(f'port {address}')
 
-            reply = client.execute(f"port {connection_address.ftp_address}")
-            connection, address = server.accept()
+        if reply.status_code != StatusCode.COMMAND_OK.value:
+            print(reply.text)
+            return None
 
-            if reply.status_code != StatusCode.COMMAND_OK.value:
-                print(reply.text)
-                return None
-
-            return server, connection, address
+        return 'external'

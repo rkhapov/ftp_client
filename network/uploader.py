@@ -1,29 +1,25 @@
 from network.connection import Connection
-from tools.progress_bar import get_progress_bar
-from tools.timer import Timer
+from tools.progress_bar import ProgressBar
 
 
-def upload_data_at_connection(connection: Connection, data: bytes):
-    timer = Timer()
-    timer.start()
+def upload(connection: Connection, data: bytes, part_callback=None, bytes_per_send=4096):
+    with ProgressBar(len(data)) as bar:
+        try:
+            offset = 0
 
-    uploaded_bytes = 0
-    max_len = 1
+            while offset < len(data):
+                send_data = data[offset:offset + bytes_per_send]
+                connection.send(send_data)
 
-    while uploaded_bytes < len(data):
-        if uploaded_bytes + 1024 < len(data):
-            uploaded_bytes += 1024
-            connection.send(data[uploaded_bytes:uploaded_bytes + 1024])
-        else:
-            uploaded_bytes += len(data) - uploaded_bytes
-            connection.send(data[uploaded_bytes:uploaded_bytes + len(data) - uploaded_bytes])
+                if part_callback is not None:
+                    part_callback(send_data)
 
-        speed = uploaded_bytes / (timer.elapsed + 1e-6)
+                bar.append(len(send_data))
+                bar.print_with_clearing()
 
-        bar = get_progress_bar(uploaded_bytes, speed, len(data))
-        print('\r{}{}'.format(bar, ' ' * (max_len - len(bar))), end='')
-        max_len = max((max_len, len(bar)))
-    result = '\rUploaded {:.2f} Kbytes by {} seconds'.format(uploaded_bytes / 1024, timer.elapsed)
-    print('\r{}{}'.format(result, ' ' * (max_len - len(result))))
+            print()
+            print(f'Sent {bar.statistic}')
 
-    timer.kill()
+        except KeyboardInterrupt:
+            print(f'Uploading aborted at {len(data)} bytes')
+            print(f'Sent {bar.statistic}')

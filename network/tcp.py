@@ -7,7 +7,7 @@ from network.server import Server
 
 
 class TcpConnection(Connection):
-    def __init__(self, address: Address=None, timeout=None, ipv6_mode=False, sock=None):
+    def __init__(self, address: Address = None, timeout=None, ipv6_mode=False, sock=None):
         if sock is not None:
             self.__socket = sock
             self.__timeout = sock.gettimeout()
@@ -53,7 +53,7 @@ class TcpConnection(Connection):
 
 
 class TcpServer(Server):
-    def __init__(self, address: Address=None, timeout=None, ipv6_mode=False):
+    def __init__(self, address: Address = None, timeout=None, ipv6_mode=False):
         self.__address = address
         self.__timeout = timeout
         self.__ipv6_mode = ipv6_mode
@@ -70,12 +70,13 @@ class TcpServer(Server):
         self.__socket.listen(backlog)
         a = self.__socket.getsockname()
 
-        return Address(host=a[0], port=a[1])
+        return Address(host=a[0], port=a[1], type='ipv6' if self.__ipv6_mode else 'ipv4')
 
     def accept(self) -> (Connection, Address):
         con, address = self.__socket.accept()
 
-        return TcpConnection(sock=con), Address(address[0], address[1])
+        return TcpConnection(sock=con), \
+               Address(address[0], address[1], type='ipv6' if self.__ipv6_mode else 'ipv4')
 
     def close(self):
         self.__socket.close()

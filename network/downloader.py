@@ -1,65 +1,31 @@
 from network.connection import Connection
-from tools.timer import Timer
-from tools.progress_bar import get_progress_bar
-
-BYTES_PER_RECV = 4096
+from tools.progress_bar import ProgressBar
 
 
-def download_data_from_connection(connection: Connection, size: int=None):
-    if size is None:
-        return bytes(_download_all_from_connection(connection))
+def download(connection: Connection, size=None, part_callback=None, bytes_per_recv=4096):
+    with ProgressBar(size) as bar:
+        data = bytearray()
 
-    return bytes(_download_exact_amount_from_connection(connection, size))
+        try:
+            part = connection.receive(bytes_per_recv)
 
+            while len(part) != 0:
+                data.extend(part)
 
-def _download_exact_amount_from_connection(connection, size):
-    timer = Timer()
-    timer.start()
-    data = bytearray()
+                if part_callback is not None:
+                    part_callback(part)
 
-    max_len = 1
-    while len(data) < size:
-        next_part = connection.receive(BYTES_PER_RECV if len(data) + BYTES_PER_RECV < size else size - len(data))
+                bar.append(len(part))
+                bar.print_with_clearing()
 
-        for b in next_part:
-            data.append(b)
+                part = connection.receive(bytes_per_recv)
 
-        speed = len(data) / (timer.elapsed + 1e-6)
+            print()
+            print(f'Downloaded {bar.statistic}')
 
-        bar = get_progress_bar(len(data), speed, size)
-        print('\r{}{}'.format(bar, ' ' * (max_len - len(bar))), end='')
-        max_len = max((max_len, len(bar)))
+            return data
 
-    ss = 'Downloaded {:.2f} Kbytes by {:.2f} sec'.format(len(data) / 1024, timer.elapsed)
-    print('\r{}{}'.format(ss, ' ' * (max_len - len(ss))))
-    timer.kill()
-
-    return data
-
-
-def _download_all_from_connection(connection):
-    timer = Timer()
-    timer.start()
-    data = bytearray()
-
-    max_len = 1
-    while True:
-        next_part = connection.receive(BYTES_PER_RECV)
-
-        if len(next_part) == 0:
-            break
-
-        for b in next_part:
-            data.append(b)
-
-        speed = len(data) / (timer.elapsed + 1e-6)
-
-        bar = get_progress_bar(len(data), speed)
-        print('\r{}{}'.format(bar, ' ' * (max_len - len(bar))), end='')
-        max_len = max((max_len, len(bar)))
-
-    ss = 'Downloaded {:.2f} Kbytes by {:.2f} sec'.format(len(data) / 1024, timer.elapsed)
-    print('\r{}{}'.format(ss, ' ' * (max_len - len(ss))))
-    timer.kill()
-
-    return data
+        except KeyboardInterrupt:
+            print(f'Downloading aborted at {len(data)} bytes')
+            print(f'Downloaded {bar.statistic}')
+            return data
