@@ -63,6 +63,7 @@ class Command:
         pasv_reply = client.execute('pasv')
 
         if pasv_reply.status_code == StatusCode.ENTERING_PASSIVE_MODE.value:
+            print(pasv_reply.text)
             return extract_address_from_text(pasv_reply.text)
 
         print(pasv_reply.text)

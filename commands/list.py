@@ -21,7 +21,7 @@ class ListCommand(Command):
         if address is None:
             return
 
-        connection = TcpConnection(address, 15)
+        connection = TcpConnection(address, 15, ipv6_mode=self.environment.is_ipv6_mode)
 
         def download_list(a):
             with connection:
