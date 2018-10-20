@@ -22,7 +22,11 @@ class TcpConnection(Connection):
 
     @property
     def timeout(self):
-        return self.__timeout
+        return self.__socket.gettimeout()
+
+    @timeout.setter
+    def timeout(self, t):
+        self.__socket.settimeout(t)
 
     @property
     def socket(self):

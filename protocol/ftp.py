@@ -25,21 +25,28 @@ class FtpClient:
     def command_sender(self):
         return self.__command_sender
 
-    def execute(self, cmd: str, positive_preliminary_handler=None) -> Reply:
+    def execute(self, cmd: str, positive_preliminary_handler=None, timeout=-1) -> Reply:
+        timeout_backup = self.connection.timeout
+        if timeout != -1:
+            self.connection.timeout = timeout
+
         self.__command_sender.send_command(cmd)
 
         reply = self.__replies_reader.read_next_reply()
 
         if not is_positive_preliminary_code(reply.status_code):
+            self.connection.timeout = timeout_backup
             return reply
 
         if positive_preliminary_handler is None:
+            self.connection.timeout = timeout_backup
             raise ValueError('positive preliminary handler are None, but reply with code {} are received'
                              .format(reply.status_code))
         positive_preliminary_handler(reply)
 
         end_reply = self.__replies_reader.read_next_reply()
 
+        self.connection.timeout = timeout_backup
         return end_reply
 
     def has_size_command(self):

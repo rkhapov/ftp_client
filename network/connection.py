@@ -23,3 +23,8 @@ class Connection:
     @abstractmethod
     def timeout(self):
         raise NotImplementedError
+
+    @timeout.setter
+    @abstractmethod
+    def timeout(self, t):
+        raise NotImplementedError
