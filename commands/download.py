@@ -38,7 +38,7 @@ class DownloadCommand(Command):
             return
 
         if entry == 'NAT':
-            reply = client.execute(f'retr {filename}', lambda x: print(x.text))
+            reply = client.execute(f'retr {filename}', lambda x: print(x.text), timeout=None)
             print(reply.text)
         else:
             server, connection, address = entry
@@ -47,6 +47,7 @@ class DownloadCommand(Command):
                 def download_file(a):
                     with connection:
                         try:
+                            print('downloading started')
                             with open(outname, 'wb') as file:
                                 data = download_data_from_connection(connection, size)
                                 file.write(data)
