@@ -47,7 +47,7 @@ class DownloadCommand(Command):
             with server:
                 con, addr = server.accept()
                 try:
-                    with con, open(self._get_outputname(), 'rb') as file:
+                    with con, open(self._get_outputname(), 'wb') as file:
                         download(con, size, lambda x: file.write(x))
                 except IOError as e:
                     print(f'Cant create file: {e.strerror}')
