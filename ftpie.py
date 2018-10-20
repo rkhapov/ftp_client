@@ -11,7 +11,7 @@ from protocol.ftp import FtpClient
 def parse_args():
     parser = argparse.ArgumentParser(description='Simple ftp client on python')
     parser.add_argument('address', help='address of ftp server', type=str)
-    parser.add_argument('--port', '--p', help='port to connect, default is 21', type=int, default=21)
+    parser.add_argument('--port', '-p', help='port to connect, default is 21', type=int, default=21)
     parser.add_argument('--ipv6', help='enable ipv6 mode', action='store_true')
 
     args = parser.parse_args()
