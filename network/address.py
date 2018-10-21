@@ -72,7 +72,7 @@ class IPv4Address(Address):
 
     @property
     def ftp_extendend_address(self):
-        return '|' + '|'.join([1, self.host, self.port]) + '|'
+        return '|' + '|'.join(['1', str(self.host), str(self.port)]) + '|'
 
     def __eq__(self, other):
         if not isinstance(other, IPv4Address):
@@ -110,7 +110,7 @@ class IPv6Address(Address):
 
     @property
     def ftp_extendend_address(self):
-        return '|' + '|'.join([2, self.host, self.port]) + '|'
+        return '|' + '|'.join(['2', str(self.host), str(self.port)]) + '|'
 
     def __eq__(self, other):
         if not isinstance(other, IPv6Address):
