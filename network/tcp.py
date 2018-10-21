@@ -44,7 +44,7 @@ class TcpConnection(Connection):
     def peer_address(self):
         sockname = self.__socket.getpeername()
 
-        if not self.is_ipv4:
+        if self.is_ipv4:
             return IPv4Address(host=sockname[0], port=sockname[1])
 
         return IPv6Address(host=sockname[0], port=sockname[1])
