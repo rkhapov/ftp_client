@@ -16,7 +16,6 @@ class TcpConnection(Connection):
             family = socket.AF_INET if isinstance(address, IPv4Address) else socket.AF_INET6
             self.__socket = socket.socket(family, socket.SOCK_STREAM)
             self.__socket.settimeout(timeout)
-            print(family, address.as_tuple)
             self.__socket.connect(address.as_tuple)
 
     @property

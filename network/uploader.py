@@ -10,6 +10,7 @@ def upload(connection: Connection, data: bytes, part_callback=None, bytes_per_se
             while offset < len(data):
                 send_data = data[offset:offset + bytes_per_send]
                 connection.send(send_data)
+                offset += bytes_per_send
 
                 if part_callback is not None:
                     part_callback(send_data)
@@ -21,5 +22,5 @@ def upload(connection: Connection, data: bytes, part_callback=None, bytes_per_se
             print(f'Sent {bar.statistic}')
 
         except KeyboardInterrupt:
-            print(f'Uploading aborted at {len(data)} bytes')
+            print(f'Uploading aborted at {offset} bytes')
             print(f'Sent {bar.statistic}')
