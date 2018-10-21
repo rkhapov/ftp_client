@@ -155,13 +155,13 @@ class Command:
             print('No any downloading needed')
             return
 
-        self._download_from_connection(connection, client, remote_name, local_name, 'wb+', size, start_offset, cmd)
+        self._download_from_connection(connection, client, remote_name, local_name, 'ab', size, start_offset, cmd)
 
     def _download_from_connection(self, connection: Connection, client: FtpClient,
                                   remote_name, local_name, file_mode, size, offset, cmd):
         def download(a):
             try:
-                with connection, open(local_name, file_mode) as file:
+                with connection, open(local_name, mode=file_mode) as file:
                     downloader.download(connection, size,
                                         part_callback=lambda x: file.write(x),
                                         start=offset)

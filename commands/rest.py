@@ -59,7 +59,7 @@ class RestCommand(Command):
             return
 
         if entry == 'external':
-            reply = client.execute(f'retr {filename}', lambda x: print(x.text), timeout=None)
+            reply = client.execute(f'retr {filename}', lambda x: print(x.text))
             print(reply.text)
             return
 
@@ -67,12 +67,12 @@ class RestCommand(Command):
             with entry as server:
                 con = server.accept()
                 try:
-                    with con, open(self._get_outputname(), 'wb+') as file:
+                    with con, open(self._get_outputname(), 'ab') as file:
                         download(con, size, lambda x: file.write(x))
                 except IOError as e:
                     print(f'Cant create file: {e.strerror}')
 
-        reply = client.execute(f'retr {filename}', download_file, timeout=None)
+        reply = client.execute(f'retr {filename}', download_file)
 
         print(reply.text)
 
@@ -89,7 +89,7 @@ class RestCommand(Command):
 
         connection = TcpConnection(address, 15)
 
-        self._pasv_download(connection, client, self.get_argument('filename'), self._get_outputname(), offset)
+        self._pasv_download(connection, client, self.get_argument('filename'), self._get_outputname(), start_offset=offset)
 
     def _get_offset(self):
         try:

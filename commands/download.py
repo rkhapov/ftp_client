@@ -36,7 +36,7 @@ class DownloadCommand(Command):
             return
 
         if entry == 'external':
-            reply = client.execute(f'retr {filename}', lambda x: print(x.text), timeout=None)
+            reply = client.execute(f'retr {filename}', lambda x: print(x.text))
             print(reply.text)
             return
 
@@ -49,7 +49,7 @@ class DownloadCommand(Command):
                 except IOError as e:
                     print(f'Cant create file: {e.strerror}')
 
-        reply = client.execute(f'retr {filename}', download_file, timeout=None)
+        reply = client.execute(f'retr {filename}', download_file)
 
         print(reply.text)
 
