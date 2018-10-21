@@ -97,7 +97,7 @@ class TcpServer(Server):
 
     def accept(self) -> Connection:
         s, a = self.__socket.accept()
-        print(s)
+
         return TcpConnection(sock=s)
 
     @property
