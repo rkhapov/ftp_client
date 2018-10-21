@@ -53,7 +53,7 @@ def main():
         print(f'IPv6 address: {environment.ipv6_address}')
         print(f'Used address: {environment.machine_address}')
         print(f'Is under NAT: {environment.is_under_nat}')
-        print(f'Connection mode is IPv6: {client.connection}')
+        print(f'Connection mode is IPv6: {client.connection.peer_address.is_ipv6}')
         print('Ready for work')
         print('------------------------------------------------------')
 

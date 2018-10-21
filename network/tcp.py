@@ -9,7 +9,7 @@ from network.server import Server
 class TcpConnection(Connection):
     def __init__(self, address: Address = None, timeout=None, sock=None):
         if sock is not None:
-            if sock.family != socket.AF_INET or sock.family != socket.AF_INET6:
+            if sock.family != socket.AF_INET and sock.family != socket.AF_INET6:
                 raise TypeError(f'Expected socket family to be AF_INET or AF_INET6, but {sock.family} found')
             self.__socket = sock
         else:
