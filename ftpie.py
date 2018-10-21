@@ -44,45 +44,48 @@ def execute_next_command(client, environment, factory):
         print('Error: {}'.format(e.args[0]))
 
 
+try:
+    print('Creating client...')
+    client, environment, factory = get_client(15)
+
+    print('Client created')
+    print(f'IPv4 address: {environment.ipv4_address}')
+    print(f'IPv6 address: {environment.ipv6_address}')
+    print(f'Connection mode is {environment.connection_mode}')
+    print(f'Used address: {environment.machine_address}')
+    print(f'Is under NAT: {environment.is_under_nat}')
+    print('Ready for work')
+    print('------------------------------------------------------')
+
+    # receive hello from server
+    print(client.start().text)
+
+    while not environment.closed:
+        execute_next_command(client, environment, factory)
+
+    client.connection.close()
+
+except socket.timeout:
+    print('Network operation timeout, check if network is reachable')
+except socket.gaierror as e:
+    print(e.strerror)
+except SyntaxError as e:
+    print(e.text)
+except OSError as e:
+    print("OSError:", e.strerror)
+except ConnectionResetError as e:
+    print('server reset the connection: {}'.format(e.strerror))
+except ConnectionAbortedError as e:
+    print('connection was aborted: {}'.format(e.strerror))
+except ConnectionError as e:
+    print('connection error: {}'.format(e.strerror))
+except ImportError as e:
+    if e.name == 'chardet':
+        print('you need to install chardet package')
+    else:
+        raise
 def main():
-    try:
-        print('Creating client...')
-        client, environment, factory = get_client(15)
-
-        print('Client created')
-        print(f'IPv4 address: {environment.ipv4_address}')
-        print(f'IPv6 address: {environment.ipv6_address}')
-        print(f'Connection mode is {environment.connection_mode}')
-        print(f'Used address: {environment.machine_address}')
-        print(f'Is under NAT: {environment.is_under_nat}')
-        print('Ready for work')
-        print('------------------------------------------------------')
-
-        # receive hello from server
-        print(client.start().text)
-
-        while not environment.closed:
-            execute_next_command(client, environment, factory)
-
-        client.connection.close()
-
-    except socket.timeout:
-        print('Network operation timeout, check if network is reachable')
-    except socket.gaierror as e:
-        print(e.strerror)
-    except SyntaxError as e:
-        print(e.text)
-    except ConnectionResetError as e:
-        print('server reset the connection: {}'.format(e.strerror))
-    except ConnectionAbortedError as e:
-        print('connection was aborted: {}'.format(e.strerror))
-    except ConnectionError as e:
-        print('connection error: {}'.format(e.strerror))
-    except ImportError as e:
-        if e.name == 'chardet':
-            print('you need to install chardet package')
-        else:
-            raise
+    pass
 
 
 if __name__ == '__main__':

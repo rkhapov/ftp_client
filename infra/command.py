@@ -75,8 +75,11 @@ class Command:
         reply = client.execute("epsv")
 
         if reply.is_success_reply:
+            print(reply.text)
             port = extract_address_from_text_6(reply.text)
+            print(port)
             addr = client.connection.peer_address.with_port(port)
+            print(addr.as_tuple, type(addr))
 
             return addr
 
