@@ -8,6 +8,6 @@ class EnvironmentBuilderUnitTests(unittest.TestCase):
         from infra.environment import EnvironmentBuilder, ConnectionMode
         builder = EnvironmentBuilder()
 
-        sut = builder.build(None)
+        sut = builder.build(None, ipv6_mode=False)
 
         self.assertEqual(sut.connection_mode, ConnectionMode.PASSIVE)

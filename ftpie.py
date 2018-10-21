@@ -3,7 +3,7 @@ import socket
 
 from infra.environment import EnvironmentBuilder
 from infra.factory import CommandFactory
-from network.address import Address
+from network.address import IPv4Address, IPv6Address
 from network.tcp import TcpConnection
 from protocol.ftp import FtpClient
 
@@ -16,14 +16,17 @@ def parse_args():
 
     args = parser.parse_args()
 
-    return Address(args.address, args.port), args.ipv6
+    if not args.ipv6:
+        return IPv4Address(args.address, args.port), args.ipv6
+
+    return IPv6Address(args.address, args.port), args.ipv6
 
 
 def get_client(timeout):
     address, is_ipv6 = parse_args()
     factory = CommandFactory()
     environment = EnvironmentBuilder().build(factory.commands, is_ipv6)
-    tcp_connection = TcpConnection(address, timeout, is_ipv6)
+    tcp_connection = TcpConnection(address, timeout)
     client = FtpClient(tcp_connection)
 
     return client, environment, factory

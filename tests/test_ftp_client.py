@@ -1,5 +1,6 @@
 import unittest
 
+from network.address import IPv4Address
 from network.connection import Connection
 from protocol.ftp import FtpClient
 from protocol.reply import Reply
@@ -8,6 +9,13 @@ send_buffer = bytearray()
 
 
 class FakeConnection(Connection):
+    def close(self):
+        pass
+
+    @property
+    def peer_address(self):
+        return IPv4Address('127.0.0.1', 1337)
+
     def __init__(self, text: str):
         self.__text = text
         self.__pointer = 0
@@ -31,7 +39,11 @@ class FakeConnection(Connection):
 
     @property
     def timeout(self):
-        raise ArithmeticError('timeout was called')
+        return 5
+
+    @timeout.setter
+    def timeout(self, v):
+        pass
 
 
 def get_client(text):

@@ -1,23 +1,21 @@
 #!/usr/bin/env python3
 import socket
 
-from network.address import Address
+from network.address import Address, IPv4Address, IPv6Address
 from network.connection import Connection
 from network.server import Server
 
 
 class TcpConnection(Connection):
-    def __init__(self, address: Address = None, timeout=None, ipv6_mode=False, sock=None):
+    def __init__(self, address: Address = None, timeout=None, sock=None):
         if sock is not None:
+            if sock.family != socket.AF_INET or sock.family != socket.AF_INET6:
+                raise ValueError('Expected socket family to be AF_INET or AF_INET6')
             self.__socket = sock
-            self.__timeout = sock.gettimeout()
-            sockname = self.__socket.getsockname()
-            self.__address = Address(sockname[0], sockname[1])
         else:
-            self.__address = address
-            self.__timeout = timeout
-            self.__socket = socket.socket(socket.AF_INET if not ipv6_mode else socket.AF_INET6, socket.SOCK_STREAM)
-            self.__socket.settimeout(self.__timeout)
+            family = socket.AF_INET if isinstance(address, IPv4Address) else socket.AF_INET6
+            self.__socket = socket.socket(family, socket.SOCK_STREAM)
+            self.__socket.settimeout(timeout)
             self.__socket.connect(address.as_tuple)
 
     @property
@@ -34,7 +32,29 @@ class TcpConnection(Connection):
 
     @property
     def address(self):
-        return self.__address
+        sockname = self.__socket.getsockname()
+
+        if not self.is_ipv4:
+            return IPv4Address(host=sockname[0], port=sockname[1])
+
+        return IPv6Address(host=sockname[0], port=sockname[1])
+
+    @property
+    def peer_address(self):
+        sockname = self.__socket.getpeername()
+
+        if not self.is_ipv4:
+            return IPv4Address(host=sockname[0], port=sockname[1])
+
+        return IPv6Address(host=sockname[0], port=sockname[1])
+
+    @property
+    def is_ipv6(self):
+        return self.__socket.family == socket.AF_INET6
+
+    @property
+    def is_ipv4(self):
+        return self.__socket.family == socket.AF_INET
 
     def send(self, data: bytes):
         self.__socket.sendall(data)
@@ -56,7 +76,7 @@ class TcpServer(Server):
     def __init__(self, address: Address = None, timeout=None, ipv6_mode=False):
         self.__address = address
         self.__timeout = timeout
-        self.__ipv6_mode = ipv6_mode
+        ipv6_mode = ipv6_mode or isinstance(address, IPv6Address)
         self.__socket = socket.socket(socket.AF_INET if not ipv6_mode else socket.AF_INET6, socket.SOCK_STREAM)
         self.__socket.settimeout(timeout)
 
@@ -70,13 +90,21 @@ class TcpServer(Server):
         self.__socket.listen(backlog)
         a = self.__socket.getsockname()
 
-        return Address(host=a[0], port=a[1], type='ipv6' if self.__ipv6_mode else 'ipv4')
+        if self.is_ipv6:
+            return IPv6Address(host=a[0], port=a[1])
 
-    def accept(self) -> (Connection, Address):
-        con, address = self.__socket.accept()
+        return IPv4Address(host=a[0], port=a[1])
 
-        return TcpConnection(sock=con), \
-               Address(address[0], address[1], type='ipv6' if self.__ipv6_mode else 'ipv4')
+    def accept(self) -> Connection:
+        return TcpConnection(sock=self.__socket.accept()[0])
+
+    @property
+    def is_ipv6(self):
+        return self.__socket.family == socket.AF_INET6
+
+    @property
+    def is_ipv4(self):
+        return self.__socket.family == socket.AF_INET
 
     def close(self):
         self.__socket.close()

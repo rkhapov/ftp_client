@@ -21,6 +21,11 @@ class Connection:
 
     @property
     @abstractmethod
+    def peer_address(self):
+        raise NotImplementedError
+
+    @property
+    @abstractmethod
     def timeout(self):
         raise NotImplementedError
 

@@ -3,7 +3,7 @@ from abc import abstractmethod
 from infra.environment import Environment, ConnectionMode
 from network.address import Address
 from network.tcp import TcpServer
-from protocol.address_parser import extract_address_from_text
+from protocol.address_parser import extract_address_from_text, extract_address_from_text_6
 from protocol.ftp import FtpClient
 from protocol.status import StatusCode
 
@@ -60,13 +60,27 @@ class Command:
         if self.environment.connection_mode != ConnectionMode.PASSIVE:
             raise ValueError('entering into passive mode not in passive mode of environment')
 
+        if self.environment.is_ipv6_mode:
+            return self._entry_pasv_6(client)
+
         pasv_reply = client.execute('pasv')
 
         if pasv_reply.status_code == StatusCode.ENTERING_PASSIVE_MODE.value:
-            print(pasv_reply.text)
             return extract_address_from_text(pasv_reply.text)
 
         print(pasv_reply.text)
+        return None
+
+    def _entry_pasv_6(self, client: FtpClient):
+        reply = client.execute("epsv")
+
+        if reply.status_code == StatusCode.ENTERING_PASSIVE_MODE.value:
+            port = extract_address_from_text_6(reply.text)
+            addr = client.connection.peer_address.with_port(port)
+
+            return addr
+
+        print(reply.text)
         return None
 
     def _entry_port(self, client: FtpClient):
@@ -83,22 +97,30 @@ class Command:
 
         server = TcpServer(ipv6_mode=self.environment.is_ipv6_mode, timeout=15)
         addr = server.listen()
-        ftp_addr = Address(host=self.environment.machine_address, port=addr.port, type=addr.type)
+        ftp_addr = addr.with_host(self.environment.machine_address)
 
-        reply = client.execute(f'port {ftp_addr.ftp_address}')
+        if server.is_ipv4:
+            reply = client.execute(f'port {ftp_addr.ftp_address}')
+        else:
+            reply = client.execute(f'eprt {ftp_addr.ftp_extendend_address}')
 
         if reply.status_code == StatusCode.COMMAND_OK.value:
             return server
 
-        print(reply.text)
+        server.close()
+        print(f'port command returned code {reply.status_code} with text {reply.text}')
         return None
 
     def __get_external_server(self, client: FtpClient):
         address = input('Enter receiver address (in FTP format): ')
-        reply = client.execute(f'port {address}')
+
+        if not self.environment.is_ipv6_mode:
+            reply = client.execute(f'port {address}')
+        else:
+            reply = client.execute(f'eprt {address}')
 
         if reply.status_code != StatusCode.COMMAND_OK.value:
-            print(reply.text)
+            print(f'port command returned code {reply.status_code} with text {reply.text}')
             return None
 
         return 'external'

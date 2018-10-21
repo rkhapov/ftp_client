@@ -6,5 +6,5 @@ class FakeClient(FtpClient):
     def __init__(self, connection: Connection):
         super().__init__(connection)
 
-    def execute(self, cmd: str, positive_preliminary_handler=None):
+    def execute(self, cmd: str, positive_preliminary_handler=None, timeout=None):
         return super().execute(cmd, positive_preliminary_handler)

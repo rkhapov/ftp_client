@@ -16,7 +16,7 @@ from infra.factory import CommandFactory
 class CommandFactoryUnitTests(unittest.TestCase):
     def setUp(self):
         self.factory = CommandFactory()
-        self.environment = EnvironmentBuilder().build(self.factory.commands)
+        self.environment = EnvironmentBuilder().build(self.factory.commands, ipv6_mode=False)
 
     def test_from_string__no_any_tokens__should_raise_value_exception(self):
         with self.assertRaises(ValueError):

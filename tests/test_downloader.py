@@ -2,7 +2,7 @@ import random
 import string
 import unittest
 
-from network.downloader import download_data_from_connection
+from network.downloader import download
 from tests.fake_connection import FakeConnection
 
 
@@ -18,7 +18,7 @@ class DownloaderUnitTests(unittest.TestCase):
     def test_download_data_from_connection__should_not_call_send_from_connection(self):
         connection = get_connetion('lol connection')
 
-        download_data_from_connection(connection)
+        download(connection)
 
         self.assertEqual(len(connection.send_data), 0)
 
@@ -26,14 +26,6 @@ class DownloaderUnitTests(unittest.TestCase):
         data = get_random_data(5234)
         connection = get_connetion(data)
 
-        downloaded_data = download_data_from_connection(connection)
+        downloaded_data = download(connection)
 
         self.assertSequenceEqual(downloaded_data, data.encode())
-
-    def test_download_data_from_connection__size_are_not_none__should_download_exact_amount_of_bytes(self):
-        data = get_random_data(15234)
-        connection = get_connetion(data)
-
-        downloaded_data = download_data_from_connection(connection, 12000)
-
-        self.assertSequenceEqual(downloaded_data, data[0:12000].encode())

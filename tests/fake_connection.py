@@ -2,6 +2,10 @@ from network.connection import Connection
 
 
 class FakeConnection(Connection):
+    @property
+    def peer_address(self):
+        return None
+
     def __init__(self, address, recv_data, timeout, raise_over_reading=False):
         self.recv_data = recv_data
         self.recv_pointer = 0
@@ -37,3 +41,7 @@ class FakeConnection(Connection):
     @property
     def timeout(self):
         return self.__timeout
+
+    @timeout.setter
+    def timeout(self, v):
+        pass

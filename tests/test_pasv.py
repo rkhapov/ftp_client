@@ -6,7 +6,7 @@ from infra.environment import EnvironmentBuilder, ConnectionMode
 
 class PasvCommandUnitTests(unittest.TestCase):
     def test_execute__should_set_connection_mode_to_passive(self):
-        environment = EnvironmentBuilder().build(None)
+        environment = EnvironmentBuilder().build(None, ipv6_mode=True)
         environment.connection_mode = ConnectionMode.PORT
         cmd = PasvCommand(environment)
 
