@@ -77,6 +77,7 @@ class Command:
         if reply.is_success_reply:
             port = extract_address_from_text_6(reply.text)
             addr = client.connection.peer_address.with_port(port)
+            print(f'Connecting address is {addr.as_tuple}')
 
             return addr
 
