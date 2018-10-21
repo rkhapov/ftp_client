@@ -96,7 +96,9 @@ class TcpServer(Server):
         return IPv4Address(host=a[0], port=a[1])
 
     def accept(self) -> Connection:
-        return TcpConnection(sock=self.__socket.accept()[0])
+        s, a = self.__socket.accept()
+        print(s)
+        return TcpConnection(sock=s)
 
     @property
     def is_ipv6(self):

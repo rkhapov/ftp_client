@@ -57,9 +57,6 @@ class Command:
         raise NotImplementedError
 
     def _entry_pasv(self, client: FtpClient):
-        if self.environment.connection_mode != ConnectionMode.PASSIVE:
-            raise ValueError('entering into passive mode not in passive mode of environment')
-
         if self.environment.is_ipv6_mode:
             return self._entry_pasv_6(client)
 
