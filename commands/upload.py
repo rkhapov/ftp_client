@@ -13,7 +13,7 @@ class UploadCommand(Command):
         if self.environment.connection_mode == ConnectionMode.PASSIVE:
             self._upload_passive(client)
         else:
-            raise NotImplementedError
+            self._upload_port(client)
 
     @staticmethod
     def help():
