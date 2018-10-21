@@ -16,10 +16,9 @@ def parse_args():
 
     args = parser.parse_args()
 
-    if not args.ipv6:
-        return IPv4Address(args.address, args.port), args.ipv6
-
-    return IPv6Address(args.address, args.port), args.ipv6
+    if args.ipv6:
+        return IPv6Address(args.address, args.port), args.ipv6
+    return IPv4Address(args.address, args.port), args.ipv6
 
 
 def get_client(timeout):
