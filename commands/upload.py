@@ -10,6 +10,12 @@ class UploadCommand(Command):
         super().__init__(environment)
 
     def execute(self, client: FtpClient):
+        r = client.execute('type i')
+
+        if not r.is_success_reply:
+            print(r.text)
+            return
+
         if self.environment.connection_mode == ConnectionMode.PASSIVE:
             self._upload_passive(client)
         else:

@@ -1,11 +1,13 @@
 from abc import abstractmethod
 
-from infra.environment import Environment, ConnectionMode
-from network.address import Address
+from infra.environment import Environment
+from network import downloader
+from network.connection import Connection
 from network.tcp import TcpServer
 from protocol.address_parser import extract_address_from_text, extract_address_from_text_6
 from protocol.ftp import FtpClient
 from protocol.status import StatusCode
+from tools.parse_helpers import try_parse_int
 
 
 class Command:
@@ -121,3 +123,46 @@ class Command:
             return None
 
         return 'external'
+
+    def _pasv_download(self, client: FtpClient, remote_name, local_name, start_offset=0, mode='I'):
+        set_type_reply = client.execute(f'type {mode}')
+
+        if not set_type_reply.is_success_reply:
+            print(set_type_reply.text)
+            return False
+
+        if mode == 'I':
+            self._pasv_download_binary(client, remote_name, local_name, start_offset)
+
+        raise NotImplementedError(f'Downloading at mode {mode} are not supported')
+
+    def _pasv_download_binary(self, client: FtpClient, remote_name, local_name, start_offset):
+        if start_offset != 0:
+            if not self._try_rest(client, start_offset):
+                raise NotImplementedError
+
+    def _download_from_connection(self, connection: Connection, client: FtpClient,
+                                  remote_name, local_name, file_mode, size, offset):
+        def download(a):
+            with open(local_name, file_mode) as file:
+                downloader.download(connection, size,
+                                    part_callback=lambda x: file.write(x),
+                                    start=offset)
+
+        reply = client.execute(f'retr {remote_name}', download)
+
+        print(reply.text)
+
+    def _get_size(self, client: FtpClient, filename):
+        if client.has_size_command():
+            text = client.execute("size {}".format(filename)).text.strip()
+            parsed, value = try_parse_int(text)
+            if parsed:
+                return value
+        return None
+
+    def _try_rest(self, client: FtpClient, offset):
+        reply = client.execute(f"rest {offset}")
+        print(reply.text)
+
+        return reply.status_code == StatusCode.REQUESTED_FILE_ACTION_PENDING_INFO.value

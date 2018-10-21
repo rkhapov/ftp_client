@@ -48,22 +48,21 @@ def main():
         print('Creating client...')
         client, environment, factory = get_client(15)
 
-        print('Client created')
-        print(f'IPv4 address: {environment.ipv4_address}')
-        print(f'IPv6 address: {environment.ipv6_address}')
-        print(f'Used address: {environment.machine_address}')
-        print(f'Is under NAT: {environment.is_under_nat}')
-        print(f'Connection mode is IPv6: {client.connection.is_ipv6}')
-        print('Ready for work')
-        print('------------------------------------------------------')
+        with client.connection:
+            print('Client created')
+            print(f'IPv4 address: {environment.ipv4_address}')
+            print(f'IPv6 address: {environment.ipv6_address}')
+            print(f'Used address: {environment.machine_address}')
+            print(f'Is under NAT: {environment.is_under_nat}')
+            print(f'Connection mode is IPv6: {client.connection.is_ipv6}')
+            print('Ready for work')
+            print('------------------------------------------------------')
 
-        # receive hello from server
-        print(client.start().text)
+            # receive hello from server
+            print(client.start().text)
 
-        while not environment.closed:
-            execute_next_command(client, environment, factory)
-
-        client.connection.close()
+            while not environment.closed:
+                execute_next_command(client, environment, factory)
 
     except socket.timeout:
         print('Network operation timeout, check if network is reachable')
@@ -84,6 +83,8 @@ def main():
             print('you need to install chardet package')
         else:
             raise
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == '__main__':

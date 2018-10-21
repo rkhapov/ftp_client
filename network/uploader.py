@@ -22,5 +22,6 @@ def upload(connection: Connection, data: bytes, part_callback=None, bytes_per_se
             print(f'Sent {bar.statistic}')
 
         except KeyboardInterrupt:
+            print()
             print(f'Uploading aborted at {offset} bytes')
             print(f'Sent {bar.statistic}')

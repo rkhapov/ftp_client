@@ -3,10 +3,11 @@ from infra.environment import Environment, ConnectionMode
 from network.downloader import download
 from network.tcp import TcpConnection
 from protocol.ftp import FtpClient
+from protocol.status import StatusCode
 from tools.parse_helpers import try_parse_int
 
 
-class DownloadCommand(Command):
+class RestCommand(Command):
     def __init__(self, environment: Environment):
         super().__init__(environment)
 
@@ -24,22 +25,37 @@ class DownloadCommand(Command):
 
     @staticmethod
     def help():
-        return 'download file <filename> to <outfilename>, if there is not <outfilename>, <filename> are used'
+        return 'restore downloading file <filename> to <outfilename>, if there is not <outfilename>, <filename> are used'
 
     @staticmethod
     def name():
-        return 'download'
+        return 'restore'
 
     @staticmethod
     def format():
-        return 'download filename $outfilename'
+        return 'restore filename $outfilename'
 
     def _execute_port(self, client):
+        offset = self._get_offset()
+
+        if offset is None:
+            print('Cant get offset to download')
+            return
+
         size = self._get_size(client)
+
+        if offset >= size:
+            print('No downloading needed')
+            return
+
         filename = self.get_argument('filename')
         entry = self._entry_port(client)
 
         if entry is None:
+            return
+
+        if not self._try_rest(client, offset):
+            print('Cant restore download')
             return
 
         if entry == 'external':
@@ -53,7 +69,7 @@ class DownloadCommand(Command):
             with server:
                 con = server.accept()
                 try:
-                    with con, open(self._get_outputname(), 'wb') as file:
+                    with con, open(self._get_outputname(), 'wb+') as file:
                         download(con, size, lambda x: file.write(x))
                 except IOError as e:
                     print(f'Cant create file: {e.strerror}')
@@ -63,10 +79,25 @@ class DownloadCommand(Command):
         print(reply.text)
 
     def _execute_passive(self, client):
+        offset = self._get_offset()
+
+        if offset is None:
+            print('Cant get offset to download')
+            return
+
         size = self._get_size(client)
+
+        if offset >= size:
+            print('No downloading needed')
+            return
+
         address = self._entry_pasv(client)
 
         if address is None:
+            return
+
+        if not self._try_rest(client, offset):
+            print('Cant restore download')
             return
 
         connection = TcpConnection(address, 15)
@@ -74,8 +105,8 @@ class DownloadCommand(Command):
         def download_file(a):
             with connection:
                 try:
-                    with open(self._get_outputname(), 'wb') as file:
-                        download(connection, size, lambda p: file.write(p))
+                    with open(self._get_outputname(), 'wb+') as file:
+                        download(connection, size, lambda p: file.write(p), start=offset)
                 except IOError as error:
                     print('Cant create output file: {}'.format(error.strerror))
 
@@ -83,13 +114,26 @@ class DownloadCommand(Command):
 
         print(reply.text)
 
-    def _get_size(self, client: FtpClient, f):
+    def _get_offset(self):
+        try:
+            import os
+            return os.path.getsize(self._get_outputname())
+        except:
+            return None
+
+    def _get_size(self, client: FtpClient):
         if client.has_size_command():
             text = client.execute("size {}".format(self.get_argument('filename'))).text.strip()
             parsed, value = try_parse_int(text)
             if parsed:
                 return value
         return None
+
+    def _try_rest(self, client: FtpClient, offset):
+        reply = client.execute(f"rest {offset}")
+        print(reply.text)
+
+        return reply.status_code == StatusCode.REQUESTED_FILE_ACTION_PENDING_INFO.value
 
     def _get_outputname(self):
         return self.get_argument('outfilename') if self.has_argument('outfilename') else self.get_argument('filename')
