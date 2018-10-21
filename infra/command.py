@@ -124,32 +124,51 @@ class Command:
 
         return 'external'
 
-    def _pasv_download(self, client: FtpClient, remote_name, local_name, start_offset=0, mode='I'):
+    def _pasv_download(self, connection: Connection, client: FtpClient,
+                       remote_name, local_name, start_offset=0, mode='I', cmd='retr'):
         set_type_reply = client.execute(f'type {mode}')
 
         if not set_type_reply.is_success_reply:
             print(set_type_reply.text)
-            return False
+            return
 
         if mode == 'I':
-            self._pasv_download_binary(client, remote_name, local_name, start_offset)
+            self._pasv_download_binary(connection, client, remote_name, local_name, start_offset, cmd)
+            return
 
         raise NotImplementedError(f'Downloading at mode {mode} are not supported')
 
-    def _pasv_download_binary(self, client: FtpClient, remote_name, local_name, start_offset):
+    def _pasv_download_binary(self, connection: Connection, client: FtpClient, remote_name, local_name, start_offset, cmd):
+        size = self._get_size(client, remote_name)
+
         if start_offset != 0:
-            if not self._try_rest(client, start_offset):
-                raise NotImplementedError
+            self._restore_download(client, connection, local_name, remote_name, size, start_offset, cmd)
+            return
+
+        self._download_from_connection(connection, client, remote_name, local_name, 'wb', size, start_offset, cmd)
+
+    def _restore_download(self, client, connection, local_name, remote_name, size, start_offset, cmd):
+        if not self._try_rest(client, start_offset):
+            print('Cant restore downloading')
+            return
+        if size is not None and start_offset >= size:
+            print('No any downloading needed')
+            return
+
+        self._download_from_connection(connection, client, remote_name, local_name, 'wb+', size, start_offset, cmd)
 
     def _download_from_connection(self, connection: Connection, client: FtpClient,
-                                  remote_name, local_name, file_mode, size, offset):
+                                  remote_name, local_name, file_mode, size, offset, cmd):
         def download(a):
-            with open(local_name, file_mode) as file:
-                downloader.download(connection, size,
-                                    part_callback=lambda x: file.write(x),
-                                    start=offset)
+            try:
+                with connection, open(local_name, file_mode) as file:
+                    downloader.download(connection, size,
+                                        part_callback=lambda x: file.write(x),
+                                        start=offset)
+            except IOError as e:
+                print("io error: {}".format(e.strerror))
 
-        reply = client.execute(f'retr {remote_name}', download)
+        reply = client.execute(f'{cmd} {remote_name}', download)
 
         print(reply.text)
 

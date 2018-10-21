@@ -79,40 +79,19 @@ class RestCommand(Command):
         print(reply.text)
 
     def _execute_passive(self, client):
-        offset = self._get_offset()
-
-        if offset is None:
-            print('Cant get offset to download')
-            return
-
-        size = self._get_size(client)
-
-        if offset >= size:
-            print('No downloading needed')
-            return
-
         address = self._entry_pasv(client)
+        offset = self._get_offset()
 
         if address is None:
             return
 
-        if not self._try_rest(client, offset):
-            print('Cant restore download')
+        if offset is None:
+            print('Cant get offset')
             return
 
         connection = TcpConnection(address, 15)
 
-        def download_file(a):
-            with connection:
-                try:
-                    with open(self._get_outputname(), 'wb+') as file:
-                        download(connection, size, lambda p: file.write(p), start=offset)
-                except IOError as error:
-                    print('Cant create output file: {}'.format(error.strerror))
-
-        reply = client.execute('retr {}'.format(self.get_argument('filename')), download_file)
-
-        print(reply.text)
+        self._pasv_download(connection, client, self.get_argument('filename'), self._get_outputname(), offset)
 
     def _get_offset(self):
         try:
@@ -120,20 +99,6 @@ class RestCommand(Command):
             return os.path.getsize(self._get_outputname())
         except:
             return None
-
-    def _get_size(self, client: FtpClient):
-        if client.has_size_command():
-            text = client.execute("size {}".format(self.get_argument('filename'))).text.strip()
-            parsed, value = try_parse_int(text)
-            if parsed:
-                return value
-        return None
-
-    def _try_rest(self, client: FtpClient, offset):
-        reply = client.execute(f"rest {offset}")
-        print(reply.text)
-
-        return reply.status_code == StatusCode.REQUESTED_FILE_ACTION_PENDING_INFO.value
 
     def _get_outputname(self):
         return self.get_argument('outfilename') if self.has_argument('outfilename') else self.get_argument('filename')

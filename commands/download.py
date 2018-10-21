@@ -3,7 +3,6 @@ from infra.environment import Environment, ConnectionMode
 from network.downloader import download
 from network.tcp import TcpConnection
 from protocol.ftp import FtpClient
-from tools.parse_helpers import try_parse_int
 
 
 class DownloadCommand(Command):
@@ -11,12 +10,6 @@ class DownloadCommand(Command):
         super().__init__(environment)
 
     def execute(self, client: FtpClient):
-        r = client.execute('type i')
-
-        if not r.is_success_reply:
-            print(r.text)
-            return
-
         if self.environment.connection_mode == ConnectionMode.PASSIVE:
             self._execute_passive(client)
         else:
@@ -35,8 +28,8 @@ class DownloadCommand(Command):
         return 'download filename $outfilename'
 
     def _execute_port(self, client):
-        size = self._get_size(client)
         filename = self.get_argument('filename')
+        size = self._get_size(client, filename)
         entry = self._entry_port(client)
 
         if entry is None:
@@ -47,10 +40,8 @@ class DownloadCommand(Command):
             print(reply.text)
             return
 
-        server = entry
-
         def download_file(a):
-            with server:
+            with entry as server:
                 con = server.accept()
                 try:
                     with con, open(self._get_outputname(), 'wb') as file:
@@ -63,7 +54,6 @@ class DownloadCommand(Command):
         print(reply.text)
 
     def _execute_passive(self, client):
-        size = self._get_size(client)
         address = self._entry_pasv(client)
 
         if address is None:
@@ -71,25 +61,7 @@ class DownloadCommand(Command):
 
         connection = TcpConnection(address, 15)
 
-        def download_file(a):
-            with connection:
-                try:
-                    with open(self._get_outputname(), 'wb') as file:
-                        download(connection, size, lambda p: file.write(p))
-                except IOError as error:
-                    print('Cant create output file: {}'.format(error.strerror))
-
-        reply = client.execute('retr {}'.format(self.get_argument('filename')), download_file)
-
-        print(reply.text)
-
-    def _get_size(self, client: FtpClient, f):
-        if client.has_size_command():
-            text = client.execute("size {}".format(self.get_argument('filename'))).text.strip()
-            parsed, value = try_parse_int(text)
-            if parsed:
-                return value
-        return None
+        self._pasv_download(connection, client, self.get_argument('filename'), self._get_outputname(), cmd='retr')
 
     def _get_outputname(self):
         return self.get_argument('outfilename') if self.has_argument('outfilename') else self.get_argument('filename')

@@ -37,8 +37,9 @@ def execute_next_command(client, environment, factory):
 
         command.execute(client)
 
-    except NotImplementedError:
+    except NotImplementedError as e:
         print('Operation are not implemented yet')
+        print(e.args[0])
     except ValueError as e:
         print('Error: {}'.format(e.args[0]))
 
