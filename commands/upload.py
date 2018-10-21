@@ -40,6 +40,32 @@ class UploadCommand(Command):
             return self.get_argument('outfilename')
         return self.get_argument('filename')
 
+    def _upload_port(self, client: FtpClient):
+        data = self._get_data_to_upload()
+        out_file_name = self._get_out_file_name()
+
+        if data is None:
+            return
+
+        address = self._entry_port(client)
+
+        if address is None:
+            return
+
+        if address == 'external':
+            reply = client.execute(f'stor {out_file_name}', lambda x: print(x.text), timeout=None)
+            print(reply.text)
+            return
+
+        server = address
+
+        def upload(a):
+            with server, server.accept() as con:
+                uploader.upload(con, data)
+
+        reply = client.execute(f'stor {out_file_name}', upload, timeout=None)
+        print(reply.text)
+
     def _upload_passive(self, client: FtpClient):
         data = self._get_data_to_upload()
         out_file_name = self._get_out_file_name()
