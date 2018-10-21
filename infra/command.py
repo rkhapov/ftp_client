@@ -74,7 +74,7 @@ class Command:
     def _entry_pasv_6(self, client: FtpClient):
         reply = client.execute("epsv")
 
-        if reply.status_code == StatusCode.ENTERING_PASSIVE_MODE.value:
+        if reply.is_success_reply:
             port = extract_address_from_text_6(reply.text)
             addr = client.connection.peer_address.with_port(port)
 
