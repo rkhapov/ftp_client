@@ -45,7 +45,7 @@ class DownloadCommand(Command):
 
         def download_file(a):
             with server:
-                con, addr = server.accept()
+                con = server.accept()
                 try:
                     with con, open(self._get_outputname(), 'wb') as file:
                         download(con, size, lambda x: file.write(x))
