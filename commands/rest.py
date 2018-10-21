@@ -63,10 +63,8 @@ class RestCommand(Command):
             print(reply.text)
             return
 
-        server = entry
-
         def download_file(a):
-            with server:
+            with entry as server:
                 con = server.accept()
                 try:
                     with con, open(self._get_outputname(), 'wb+') as file:
