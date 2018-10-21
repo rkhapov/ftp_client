@@ -11,6 +11,10 @@ class Reply:
     def text(self):
         return self.__text
 
+    @property
+    def is_success_reply(self):
+        return str(self.__status_code).startswith('2')
+
     def __eq__(self, other):
         if not isinstance(other, Reply):
             return False
