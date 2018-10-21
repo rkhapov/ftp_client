@@ -10,7 +10,7 @@ class TcpConnection(Connection):
     def __init__(self, address: Address = None, timeout=None, sock=None):
         if sock is not None:
             if sock.family != socket.AF_INET or sock.family != socket.AF_INET6:
-                raise ValueError('Expected socket family to be AF_INET or AF_INET6')
+                raise TypeError(f'Expected socket family to be AF_INET or AF_INET6, but {sock.family} found')
             self.__socket = sock
         else:
             family = socket.AF_INET if isinstance(address, IPv4Address) else socket.AF_INET6
