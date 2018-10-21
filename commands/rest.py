@@ -36,16 +36,16 @@ class RestCommand(Command):
         return 'restore filename $outfilename'
 
     def _execute_port(self, client):
-        offset = self._get_offset()
         filename = self.get_argument('filename')
 
+        size = self._get_size(client, filename)
+
+        offset = self._get_offset()
         if offset is None:
             print('Cant get offset to download')
             return
 
-        size = self._get_size(client, filename)
-
-        if offset >= size:
+        if size is not None and offset >= size:
             print('No downloading needed')
             return
 
