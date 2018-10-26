@@ -67,7 +67,7 @@ class Command:
         if pasv_reply.status_code == StatusCode.ENTERING_PASSIVE_MODE.value:
             return extract_address_from_text(pasv_reply.text)
 
-        print(pasv_reply.text)
+        self.environment.writer.write(pasv_reply.text)
         return None
 
     def _entry_pasv_6(self, client: FtpClient):
@@ -79,11 +79,11 @@ class Command:
 
             return addr
 
-        print(reply.text)
+        self.environment.writer.write(reply.text)
         return None
 
     def _entry_port(self, client: FtpClient):
-        mode = input('Do you want to use this machine as server(yes, no)[yes]:')
+        mode = self.environment.reader.read_next_command('Do you want to use this machine as server(yes, no)[yes]:')
 
         if mode == '' or mode.lower() == 'yes':
             return self.__get_server_with_current_machine(client)
@@ -91,7 +91,7 @@ class Command:
 
     def __get_server_with_current_machine(self, client: FtpClient):
         if self.environment.is_under_nat:
-            print('Cant create server on machine under nat')
+            self.environment.writer.write('Cant create server on machine under nat', is_error=True)
             return None
 
         server = TcpServer(ipv6_mode=self.environment.is_ipv6_mode, timeout=15)
@@ -107,11 +107,11 @@ class Command:
             return server
 
         server.close()
-        print(f'port command returned code {reply.status_code} with text {reply.text}')
+        self.environment.writer.write(f'port command returned code {reply.status_code} with text {reply.text}', is_error=True)
         return None
 
     def __get_external_server(self, client: FtpClient):
-        address = input('Enter receiver address (in FTP format): ')
+        address = self.environment.reader.read_next_command('Enter receiver address (in FTP format): ')
 
         if not self.environment.is_ipv6_mode:
             reply = client.execute(f'port {address}')
@@ -119,7 +119,7 @@ class Command:
             reply = client.execute(f'eprt {address}')
 
         if reply.status_code != StatusCode.COMMAND_OK.value:
-            print(f'port command returned code {reply.status_code} with text {reply.text}')
+            self.environment.writer.write(f'port command returned code {reply.status_code} with text {reply.text}', is_error=True)
             return None
 
         return 'external'
@@ -129,7 +129,7 @@ class Command:
         set_type_reply = client.execute(f'type {mode}')
 
         if not set_type_reply.is_success_reply:
-            print(set_type_reply.text)
+            self.environment.writer.write(set_type_reply.text, is_error=True)
             return
 
         if mode == 'I':
@@ -149,10 +149,10 @@ class Command:
 
     def _restore_download(self, client, connection, local_name, remote_name, size, start_offset, cmd):
         if not self._try_rest(client, start_offset):
-            print('Cant restore downloading')
+            self.environment.writer.write('Cant restore downloading', is_error=True)
             return
         if size is not None and start_offset >= size:
-            print('No any downloading needed')
+            self.environment.writer.write('No any downloading needed', is_error=True)
             return
 
         self._download_from_connection(connection, client, remote_name, local_name, 'ab', size, start_offset, cmd)
@@ -164,13 +164,14 @@ class Command:
                 with connection, open(local_name, mode=file_mode) as file:
                     downloader.download(connection, size,
                                         part_callback=lambda x: file.write(x),
-                                        start=offset)
+                                        start=offset,
+                                        writer=self.environment.writer)
             except IOError as e:
-                print("io error: {}".format(e.strerror))
+                self.environment.writer.write("io error: {}".format(e.strerror), is_error=True)
 
         reply = client.execute(f'{cmd} {remote_name}', download)
 
-        print(reply.text)
+        self.environment.writer.write(reply.text)
 
     def _get_size(self, client: FtpClient, filename):
         if client.has_size_command():
@@ -182,6 +183,6 @@ class Command:
 
     def _try_rest(self, client: FtpClient, offset):
         reply = client.execute(f"rest {offset}")
-        print(reply.text)
+        self.environment.writer.write(reply.text)
 
         return reply.status_code == StatusCode.REQUESTED_FILE_ACTION_PENDING_INFO.value

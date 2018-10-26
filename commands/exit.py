@@ -9,7 +9,7 @@ class ExitCommand(Command):
 
     def execute(self, client: FtpClient):
         self.environment.closed = True
-        print(client.execute('quit').text)
+        self.environment.writer.write(client.execute('quit').text)
 
     @staticmethod
     def help():

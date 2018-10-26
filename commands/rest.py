@@ -15,7 +15,7 @@ class RestCommand(Command):
         r = client.execute('type i')
 
         if not r.is_success_reply:
-            print(r.text)
+            self.environment.writer.write(r.text, is_error=True)
             return
 
         if self.environment.connection_mode == ConnectionMode.PASSIVE:
@@ -42,11 +42,11 @@ class RestCommand(Command):
 
         offset = self._get_offset()
         if offset is None:
-            print('Cant get offset to download')
+            self.environment.writer.write('Cant get offset to download', is_error=True)
             return
 
         if size is not None and offset >= size:
-            print('No downloading needed')
+            self.environment.writer.write('No downloading needed', is_error=True)
             return
 
         entry = self._entry_port(client)
@@ -55,12 +55,12 @@ class RestCommand(Command):
             return
 
         if not self._try_rest(client, offset):
-            print('Cant restore download')
+            self.environment.writer.write('Cant restore download', is_error=True)
             return
 
         if entry == 'external':
-            reply = client.execute(f'retr {filename}', lambda x: print(x.text))
-            print(reply.text)
+            reply = client.execute(f'retr {filename}', lambda x: self.environment.writer.write(x.text))
+            self.environment.writer.write(reply.text)
             return
 
         def download_file(a):
@@ -68,13 +68,13 @@ class RestCommand(Command):
                 con = server.accept()
                 try:
                     with con, open(self._get_outputname(), 'ab') as file:
-                        download(con, size, lambda x: file.write(x))
+                        download(con, size, lambda x: file.write(x), writer=self.environment.writer)
                 except IOError as e:
-                    print(f'Cant create file: {e.strerror}')
+                    self.environment.writer.write(f'Cant create file: {e.strerror}', is_error=True)
 
         reply = client.execute(f'retr {filename}', download_file)
 
-        print(reply.text)
+        self.environment.writer.write(reply.text)
 
     def _execute_passive(self, client):
         address = self._entry_pasv(client)
@@ -84,7 +84,7 @@ class RestCommand(Command):
             return
 
         if offset is None:
-            print('Cant get offset')
+            self.environment.writer.write('Cant get offset', is_error=True)
             return
 
         connection = TcpConnection(address, 15)

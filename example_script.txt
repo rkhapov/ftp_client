@@ -1,0 +1,6 @@
+# The example of script
+# Downloads lines98.exe from 95.82.248.32
+
+login a b
+cd Games
+download lines98.exe

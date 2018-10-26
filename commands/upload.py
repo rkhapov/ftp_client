@@ -13,7 +13,7 @@ class UploadCommand(Command):
         r = client.execute('type i')
 
         if not r.is_success_reply:
-            print(r.text)
+            self.environment.writer.write(r.text, is_error=True)
             return
 
         if self.environment.connection_mode == ConnectionMode.PASSIVE:
@@ -38,7 +38,7 @@ class UploadCommand(Command):
             with open(self.get_argument('filename'), 'rb') as file:
                 return file.read()
         except:
-            print('Cant open file {}'.format(self.get_argument('filename')))
+            self.environment.writer.write('Cant open file {}'.format(self.get_argument('filename')), is_error=True)
             return None
 
     def _get_out_file_name(self):
@@ -59,18 +59,18 @@ class UploadCommand(Command):
             return
 
         if address == 'external':
-            reply = client.execute(f'stor {out_file_name}', lambda x: print(x.text), timeout=None)
-            print(reply.text)
+            reply = client.execute(f'stor {out_file_name}', lambda x: self.environment.writer.write(x.text), timeout=None)
+            self.environment.writer.write(reply.text)
             return
 
         server = address
 
         def upload(a):
             with server, server.accept() as con:
-                uploader.upload(con, data)
+                uploader.upload(con, data, writer=self.environment.writer)
 
         reply = client.execute(f'stor {out_file_name}', upload, timeout=None)
-        print(reply.text)
+        self.environment.writer.write(reply.text)
 
     def _upload_passive(self, client: FtpClient):
         data = self._get_data_to_upload()
@@ -88,8 +88,8 @@ class UploadCommand(Command):
 
         def upload_file(a):
             with connection:
-                uploader.upload(connection, data)
+                uploader.upload(connection, data, writer=self.environment.writer)
 
         reply = client.execute("STOR {}".format(out_file_name), upload_file)
 
-        print(reply.text)
+        self.environment.writer.write(reply.text)

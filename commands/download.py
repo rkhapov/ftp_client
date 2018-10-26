@@ -37,7 +37,7 @@ class DownloadCommand(Command):
 
         if entry == 'external':
             reply = client.execute(f'retr {filename}', lambda x: print(x.text))
-            print(reply.text)
+            self.environment.writer.write(reply.text)
             return
 
         def download_file(a):
@@ -45,13 +45,13 @@ class DownloadCommand(Command):
                 con = server.accept()
                 try:
                     with con, open(self._get_outputname(), 'wb') as file:
-                        download(con, size, lambda x: file.write(x))
+                        download(con, size, lambda x: file.write(x), writer=self.environment.writer)
                 except IOError as e:
-                    print(f'Cant create file: {e.strerror}')
+                    self.environment.writer.write(f'Cant create file: {e.strerror}', is_error=True)
 
         reply = client.execute(f'retr {filename}', download_file)
 
-        print(reply.text)
+        self.environment.writer.write(reply.text)
 
     def _execute_passive(self, client):
         address = self._entry_pasv(client)

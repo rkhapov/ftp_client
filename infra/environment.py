@@ -1,4 +1,7 @@
 from enum import Enum
+
+from infra.command_reader import CommandReader, ConsoleCommandReader, FileCommandReader
+from infra.writer import Writer, ConsoleAllWriter, OnlyErrorsConsoleWriter
 from tools.get_ip import *
 
 
@@ -8,13 +11,31 @@ class ConnectionMode(Enum):
 
 
 class Environment:
-    def __init__(self, connection_mode, closed, ipv4_address, ipv6_address, commands, ipv6_mode):
+    def __init__(self, connection_mode, closed,
+                 ipv4_address, ipv6_address,
+                 commands, ipv6_mode,
+                 writer: Writer, reader: CommandReader, is_pack_mode):
         self.connection_mode = connection_mode
         self.closed = closed
         self.__commands = commands
         self.__ipv4_address = ipv4_address
         self.__ipv6_address = ipv6_address
         self.__ipv6_mode = ipv6_mode
+        self.__writer = writer
+        self.__reader = reader
+        self.__is_pack_mode = is_pack_mode
+
+    @property
+    def is_pack_mode(self):
+        return self.__is_pack_mode
+
+    @property
+    def writer(self) -> Writer:
+        return self.__writer
+
+    @property
+    def reader(self) -> CommandReader:
+        return self.__reader
 
     @property
     def is_ipv6_mode(self):
@@ -75,10 +96,16 @@ class EnvironmentBuilder:
     def __init__(self):
         pass
 
-    def build(self, commands, ipv6_mode):
+    def build(self, commands, ipv6_mode, script_file=None):
+        writer = OnlyErrorsConsoleWriter() if script_file is not None else ConsoleAllWriter()
+        reader = FileCommandReader(script_file) if script_file is not None else ConsoleCommandReader()
+
         return Environment(connection_mode=ConnectionMode.PASSIVE,
                            closed=False,
                            commands=commands,
                            ipv4_address=get_ipv4(),
                            ipv6_address=get_ipv6(),
-                           ipv6_mode=ipv6_mode)
+                           ipv6_mode=ipv6_mode,
+                           writer=writer,
+                           reader=reader,
+                           is_pack_mode=script_file is not None)

@@ -15,7 +15,7 @@ class CdCommand(Command):
         else:
             reply = client.execute('cwd {}'.format(directory))
 
-        print(reply.text)
+        self.environment.writer.write(reply.text)
 
     @staticmethod
     def help():

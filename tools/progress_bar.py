@@ -1,3 +1,4 @@
+from infra.writer import Writer
 from tools.timer import Timer
 
 
@@ -66,10 +67,14 @@ class ProgressBar:
 
         return '{} bytes from {:.2f} second'.format(self.__current, self.elapsed_time)
 
-    def print_with_clearing(self):
+    def print_with_clearing(self, writer: Writer=None):
+
+        if writer is None:
+            return
+
         space = ' ' * self.__max_len
         bar = self.bar
-        print(f'\r{space}\r{bar}', end='')
+        writer.write(f'\r{space}\r{bar}', end='')
 
     def __enter__(self):
         self.__timer.start()

@@ -12,11 +12,11 @@ class HelpCommand(Command):
             self._print_command_info()
             return
 
-        print('ftpie - simple ftp client')
-        print('list of available commands:')
+        self.environment.writer.write('ftpie - simple ftp client')
+        self.environment.writer.write('list of available commands:')
         for cmd in self.__commands:
-            print(cmd.name())
-        print('see help <command> for command details')
+            self.environment.writer.write(cmd.name())
+        self.environment.writer.write('see help <command> for command details')
 
     @staticmethod
     def help():
@@ -35,8 +35,8 @@ class HelpCommand(Command):
 
         for cmd in self.__commands:
             if cmd.name() == name:
-                print(cmd.format())
-                print(cmd.help())
+                self.environment.writer.write(cmd.format())
+                self.environment.writer.write(cmd.help())
                 return
 
-        print('unknown command: {}'.format(name))
+        self.environment.writer.write('unknown command: {}'.format(name))

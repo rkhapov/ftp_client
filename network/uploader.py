@@ -1,8 +1,9 @@
+from infra.writer import Writer
 from network.connection import Connection
 from tools.progress_bar import ProgressBar
 
 
-def upload(connection: Connection, data: bytes, part_callback=None, bytes_per_send=4096):
+def upload(connection: Connection, data: bytes, part_callback=None, bytes_per_send=4096, writer: Writer=None):
     with ProgressBar(len(data)) as bar:
         try:
             offset = 0
@@ -16,12 +17,14 @@ def upload(connection: Connection, data: bytes, part_callback=None, bytes_per_se
                     part_callback(send_data)
 
                 bar.append(len(send_data))
-                bar.print_with_clearing()
+                bar.print_with_clearing(writer)
 
-            print()
-            print(f'Sent {bar.statistic}')
+            if writer:
+                writer.write()
+                writer.write(f'Sent {bar.statistic}')
 
         except KeyboardInterrupt:
-            print()
-            print(f'Uploading aborted at {offset} bytes')
-            print(f'Sent {bar.statistic}')
+            if writer:
+                writer.write()
+                writer.write(f'Uploading aborted at {len(data)} bytes')
+                writer.write(f'Sent {bar.statistic}')

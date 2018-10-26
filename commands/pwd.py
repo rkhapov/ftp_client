@@ -7,7 +7,7 @@ class PwdCommand(Command):
         super().__init__(environment)
 
     def execute(self, client: FtpClient):
-        print(client.execute('pwd').text)
+        self.environment.writer.write(client.execute('pwd').text)
 
     @staticmethod
     def help():

@@ -14,7 +14,7 @@ def get_ipv4() -> str:
         return None
 
 
-def get_ipv6():
+def get_ipv6() -> str:
     try:
         with socket.socket(socket.AF_INET6, socket.SOCK_DGRAM) as s:
             s.settimeout(TIMEOUT)

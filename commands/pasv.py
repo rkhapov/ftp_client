@@ -9,7 +9,7 @@ class PasvCommand(Command):
 
     def execute(self, client: FtpClient):
         self.environment.connection_mode = ConnectionMode.PASSIVE
-        print('Entered passive mode')
+        self.environment.writer.write('Entered passive mode')
 
     @staticmethod
     def help():

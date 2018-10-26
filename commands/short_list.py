@@ -25,11 +25,12 @@ class ShortListCommand(Command):
 
         def download_list(a):
             with connection:
-                print(' '.join(decoder.decode_bytes(download(connection)).split()))
+                self.environment.writer.write(' '.join(decoder.decode_bytes(download(connection)).split()),
+                                              writer=self.environment.writer, reader=self.environment.reader)
 
         reply = client.execute('nlst', download_list)
 
-        print(reply.text)
+        self.environment.writer.write(reply.text)
 
     @staticmethod
     def help():

@@ -9,7 +9,7 @@ class PortCommand(Command):
 
     def execute(self, client: FtpClient):
         self.environment.connection_mode = ConnectionMode.PORT
-        print('Entered port mode')
+        self.environment.writer.write('Entered port mode')
 
     @staticmethod
     def help():

@@ -25,11 +25,12 @@ class ListCommand(Command):
 
         def download_list(a):
             with connection:
-                print(decoder.decode_bytes(download(connection)))
+                self.environment.writer.write(decoder.decode_bytes(download(connection)),
+                                              writer=self.environment.writer, reader=self.environment.reader)
 
         reply = client.execute('list', download_list)
 
-        print(reply.text)
+        self.environment.writer.write(reply.text)
 
     @staticmethod
     def help():
